@@ -8,13 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.graph.GraphBuilder;
-import io.github.oliviercailloux.gitjfs.GitDfsFileSystem;
-import io.github.oliviercailloux.gitjfs.GitFileFileSystem;
-import io.github.oliviercailloux.gitjfs.GitFileSystem;
-import io.github.oliviercailloux.gitjfs.GitFileSystemProvider;
 import io.github.oliviercailloux.jgit.JGit;
 import jakarta.ws.rs.core.UriBuilder;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
@@ -22,6 +17,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.time.Instant;
 import org.eclipse.jgit.internal.storage.dfs.DfsRepository;
 import org.eclipse.jgit.internal.storage.dfs.DfsRepositoryDescription;
 import org.eclipse.jgit.internal.storage.dfs.InMemoryRepository;
@@ -48,8 +44,8 @@ class GitFileSystemCreationAndUriTests {
 	}
 
 	@Test
-	void testNoSystemThere() throws IOException {
-		final Path noDir = Files.createTempDirectory(this.getClass().getSimpleName() + "nos");
+	void testNoSystemThere() throws Exception {
+		final Path noDir = Path.of(this.getClass().getSimpleName() + Instant.now().toString() + "nos");
 		assertFalse(Files.exists(noDir));
 		/*
 		 * I believe that FileSystems.newFileSystem(noDir,
