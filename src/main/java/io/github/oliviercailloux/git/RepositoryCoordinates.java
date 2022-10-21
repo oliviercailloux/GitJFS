@@ -22,7 +22,7 @@ public class RepositoryCoordinates {
 		this.authority = requireNonNull(authority);
 		this.owner = requireNonNull(owner);
 		this.repo = requireNonNull(repo);
-		uri = GitUri.ssh(authority, owner + "/" + repo + ".git");
+		uri = GitUri.ssh(authority, "/" + owner + "/" + repo + ".git");
 	}
 
 	public String authority() {
