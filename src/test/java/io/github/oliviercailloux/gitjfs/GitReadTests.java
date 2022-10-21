@@ -14,11 +14,12 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.PeekingIterator;
 import com.google.common.graph.MutableGraph;
-import io.github.oliviercailloux.git.GitCloner;
+import io.github.oliviercailloux.git.GitUri;
 import io.github.oliviercailloux.git.RepositoryCoordinates;
 import io.github.oliviercailloux.gitjfs.GitFileSystem.GitStringObject;
 import io.github.oliviercailloux.jaris.collections.GraphUtils;
 import io.github.oliviercailloux.jgit.JGit;
+import java.io.File;
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
@@ -29,6 +30,9 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.NotLinkException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
+import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -55,6 +59,18 @@ import org.slf4j.LoggerFactory;
 public class GitReadTests {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitReadTests.class);
+
+	static FileRepository download(GitUri uri, Path repositoryDirectory) throws GitAPIException, IOException {
+		verify(Files.list(repositoryDirectory).count() == 0);
+		final CloneCommand cloneCmd = Git.cloneRepository();
+		cloneCmd.setURI(uri.asString());
+		cloneCmd.setBare(true);
+		final File dest = repositoryDirectory.toFile();
+		cloneCmd.setDirectory(dest);
+		LOGGER.info("Cloning {} to {}.", uri, dest);
+		Git git = cloneCmd.call();
+		return (FileRepository) git.getRepository();
+	}
 
 	public static void main(String[] args) throws Exception {
 		try (Repository repo = new FileRepository("/tmp/ploum/.git")) {
@@ -521,9 +537,10 @@ public class GitReadTests {
 	@Test
 	void testFindBig() throws Exception {
 		final Path repoWorkDir = Files.createTempDirectory("minimax-ex");
-		try (FileRepository repository = GitCloner.create().download(
-				RepositoryCoordinates.from("git@github.com", "oliviercailloux-org", "minimax-ex").asGitUri(),
-				repoWorkDir);
+//		Files.delete(repoWorkDir);
+		final GitUri uri = RepositoryCoordinates.from("git@github.com", "oliviercailloux-org", "minimax-ex").asGitUri();
+		LOGGER.info("From {}.", uri.asString());
+		try (FileRepository repository = download(uri, repoWorkDir);
 				GitFileSystem gitFs = GitFileSystemProvider.getInstance().newFileSystemFromRepository(repository)) {
 			search(repository, gitFs);
 			search(repository, gitFs);
