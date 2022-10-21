@@ -4,7 +4,8 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * The coordinates of a repository constituted of an authority, an owner and a
- * repository name. This format is used by such hosts as
+ * repository name and reachable at the git uri
+ * {@code ssh://authority/owner/repo.git}. This format is used by such hosts as
  * <a href="https://github.com/">GitHub</a> or
  * <a href="https://bitbucket.org/">BitBucket</a>.
  */
