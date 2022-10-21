@@ -177,7 +177,7 @@ public class GitUri {
 
 	public static GitUri ssh(String authority, String path) {
 		try {
-			return new GitUri(new URI("ssh", authority, path, "", ""));
+			return new GitUri(new URI("ssh", authority, path, null, null));
 		} catch (URISyntaxException e) {
 			throw new IllegalArgumentException(e);
 		}
