@@ -482,7 +482,7 @@ public class GitReadTests {
 		final GitPathRoot main = gitFs.getPathRoot("/refs/heads/main/");
 		final GitPathRoot relevantBranch = main.exists() ? main : gitFs.getPathRoot("/refs/heads/master/");
 		verify(relevantBranch.exists());
-		final ObjectId id = relevantBranch.getCommit().getId();
+		final ObjectId id = relevantBranch.getCommit().id();
 		final GitPathRoot pathId = gitFs.getPathRoot(id);
 
 		LOGGER.info("Searching for file directly.");

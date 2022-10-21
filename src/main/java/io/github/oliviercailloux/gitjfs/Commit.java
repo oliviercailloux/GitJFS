@@ -14,14 +14,17 @@ import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 /**
- * Authoring comes logically before committing, but because the dates are set by
- * the client, manual tampering (or incorrect clock) may cause author time to be
- * after committer time. This is rare in practice, but happens. For example, see
- * <a href=
+ * An immutable commit, with author and committer information (name, email,
+ * date).
+ * <p>
+ * Note that authoring comes logically before committing but there is no
+ * guarantee that the author date and committer date follow this ordering (and
+ * this class does not attempt to verify this): because the dates are set by the
+ * client, manual tampering or incorrect clock may cause author time to be after
+ * committer time. This is rare in practice, but happens. For example, <a href=
  * "https://api.github.com/repos/checkstyle/checkstyle/commits/812b3416dcda571de5e6f7abd9d4e4c68c4dcdcf">this
- * commit</a> in the checkstyle project, authored at "2017-07-09T05:01:28Z" but
- * committed (by someone else) at "2017-07-09T04:42:52Z", twenty minutes
- * earlier!
+ * commit</a> in the checkstyle project was authored at “2017-07-09T05:01:28Z”
+ * but committed (by someone else) about twenty minutes earlier.
  */
 public class Commit {
 	private static ZonedDateTime getCreationTime(PersonIdent ident) {
@@ -30,6 +33,12 @@ public class Commit {
 		final ZonedDateTime creationTime = ZonedDateTime.ofInstant(creationInstant.toInstant(),
 				creationZone.toZoneId());
 		return creationTime;
+	}
+
+	public static Commit from(ObjectId id, String authorName, String authorEmail, ZonedDateTime authorDate,
+			String committerName, String committerEmail, ZonedDateTime committerDate, List<ObjectId> parents) {
+		return new Commit(id, authorName, authorEmail, authorDate, committerName, committerEmail, committerDate,
+				parents);
 	}
 
 	static Commit create(RevCommit revCommit) {
@@ -70,38 +79,42 @@ public class Commit {
 		this.parents = ImmutableList.copyOf(parents);
 	}
 
-	public ObjectId getId() {
+	public ObjectId id() {
 		return id;
 	}
 
-	public String getAuthorName() {
+	public String authorName() {
 		return authorName;
 	}
 
-	public String getAuthorEmail() {
+	public String authorEmail() {
 		return authorEmail;
 	}
 
-	public ZonedDateTime getAuthorDate() {
+	public ZonedDateTime authorDate() {
 		return authorDate;
 	}
 
-	public String getCommitterName() {
+	public String committerName() {
 		return committerName;
 	}
 
-	public String getCommitterEmail() {
+	public String committerEmail() {
 		return committerEmail;
 	}
 
-	public ZonedDateTime getCommitterDate() {
+	public ZonedDateTime committerDate() {
 		return committerDate;
 	}
 
-	public ImmutableList<ObjectId> getParents() {
+	public ImmutableList<ObjectId> parents() {
 		return parents;
 	}
 
+	/**
+	 * Two commits are equal iff they have equal ids, author and committer
+	 * information and parents.
+	 */
 	@Override
 	public boolean equals(Object o2) {
 		if (!(o2 instanceof Commit)) {
