@@ -71,15 +71,18 @@ import org.slf4j.LoggerFactory;
  * Must be {@link #close() closed} to release resources associated with readers.
  * </p>
  * <p>
- * Reads links transparently, as indicated in the package-summary of the nio
- * package. Thus, assuming dir is a symlink to otherdir, reading dir/file.txt
- * reads otherdir/file.txt. This is also what git operations do naturally:
- * checking out dir will restore it as a symlink to otherdir
- * (https://stackoverflow.com/a/954575). Consider implementing
- * Provider#readLinks and so on.
- *
- * Note that a git repository does not have the concept of hard links
- * (https://stackoverflow.com/a/3731139).
+ * Reads links transparently, as documented in <a href=
+ * "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/package-summary.html">java.nio.file</a>.
+ * Thus, assuming {@code dir} is a symlink to {@code otherdir}, reading
+ * {@code dir/file.txt} reads {@code otherdir/file.txt}. This is also how git
+ * <a href="https://stackoverflow.com/a/954575">operates</a>: checking out
+ * {@code dir} will restore it as a symlink to {@code otherdir}. Use
+ * {@link GitFileSystemProvider#readSymbolicLink} to obtain the target of a
+ * link. This library will however refuse to follow a link out of the git
+ * repository it originates from.
+ * <p>
+ * Note that a git repository <a href="https://stackoverflow.com/a/3731139">does
+ * not use hard links</a>.
  *
  *
  * @see #getAbsolutePath(String, String...)
