@@ -677,10 +677,6 @@ public class GitFileSystemProvider extends FileSystemProvider {
 		throw new ReadOnlyFileSystemException();
 	}
 
-	/**
-	 * TODO I wonder about the missing NoSuchFileException and the strange
-	 * NotLinkException “optional specific”.
-	 */
 	@Override
 	public Path readSymbolicLink(Path link)
 			throws IOException, NoSuchFileException, NotLinkException, AbsoluteLinkException, SecurityException {
