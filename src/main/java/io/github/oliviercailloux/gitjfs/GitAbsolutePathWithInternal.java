@@ -101,16 +101,6 @@ class GitAbsolutePathWithInternal extends GitAbsolutePath {
 	}
 
 	@Override
-	GitRelativePathWithInternal toRelativePath() {
-		if (root.toStaticRev().equals(GitPathRoot.DEFAULT_GIT_REF)) {
-			return new GitRelativePathWithInternal(this);
-		}
-		final GitFileSystem fileSystem = getFileSystem();
-		return new GitRelativePathWithInternal(
-				new GitAbsolutePathWithInternal(fileSystem.mainSlash, getInternalPath()));
-	}
-
-	@Override
 	GitObject getGitObject(FollowLinksBehavior behavior)
 			throws NoSuchFileException, PathCouldNotBeFoundException, IOException {
 		final GitPathRootSha current = root.toSha();

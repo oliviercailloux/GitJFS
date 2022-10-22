@@ -8,27 +8,20 @@ import com.google.common.collect.Streams;
 import java.nio.file.Path;
 
 class GitRelativePathWithInternal extends GitRelativePath {
-	private final GitAbsolutePathWithInternal absoluteEquivalent;
+	private final Path internalPath;
 
-	GitRelativePathWithInternal(GitAbsolutePathWithInternal absoluteEquivalent) {
-		this.absoluteEquivalent = checkNotNull(absoluteEquivalent);
-		checkArgument(absoluteEquivalent.getRoot().toStaticRev().equals(GitPathRoot.DEFAULT_GIT_REF));
-		final Path relative = absoluteEquivalent.getInternalPath().relativize(GitFileSystem.JIM_FS_SLASH);
-		checkArgument(relative.getRoot() == null);
-		checkArgument(relative.getNameCount() >= 1);
-		final boolean hasEmptyName = Streams.stream(relative).anyMatch(p -> p.toString().isEmpty());
+	GitRelativePathWithInternal(Path internalPath) {
+		checkArgument(internalPath.getRoot() == null);
+		checkArgument(internalPath.getNameCount() >= 1);
+		final boolean hasEmptyName = Streams.stream(internalPath).anyMatch(p -> p.toString().isEmpty());
 		if (hasEmptyName) {
-			verify(relative.getNameCount() == 1);
+			verify(internalPath.getNameCount() == 1);
 		}
-	}
-
-	@Override
-	public GitAbsolutePathWithInternal toAbsolutePath() {
-		return absoluteEquivalent;
+		this.internalPath = checkNotNull(internalPath);
 	}
 
 	@Override
 	Path getInternalPath() {
-		return GitFileSystem.JIM_FS_SLASH.relativize(absoluteEquivalent.getInternalPath());
+		return internalPath;
 	}
 }

@@ -50,10 +50,7 @@ abstract class GitRelativePath extends GitPath {
 			return fs.emptyPath;
 		}
 
-		final GitPathRoot root = fs.mainSlash;
-		final GitAbsolutePathWithInternal absolute = new GitAbsolutePathWithInternal(root,
-				internalPath.toAbsolutePath());
-		return new GitRelativePathWithInternal(absolute);
+		return new GitRelativePathWithInternal(internalPath);
 	}
 
 	protected GitRelativePath() {
@@ -68,12 +65,6 @@ abstract class GitRelativePath extends GitPath {
 	public boolean isAbsolute() {
 		return false;
 	}
-
-	/**
-	 * Returns a git path whose root component refers to the main branch.
-	 */
-	@Override
-	public abstract GitPath toAbsolutePath();
 
 	@Override
 	public GitPathRoot getRoot() {
