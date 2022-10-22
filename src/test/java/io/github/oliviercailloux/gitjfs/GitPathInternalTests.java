@@ -8,6 +8,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.net.UrlEscapers;
+import io.github.oliviercailloux.gitjfs.GitAbsolutePath;
+import io.github.oliviercailloux.gitjfs.GitFileSystem;
+import io.github.oliviercailloux.gitjfs.GitFileSystemProvider;
+import io.github.oliviercailloux.gitjfs.GitPath;
+import io.github.oliviercailloux.gitjfs.GitPathRoot;
+import io.github.oliviercailloux.gitjfs.GitRelativePath;
+import io.github.oliviercailloux.gitjfs.GitRev;
+import io.github.oliviercailloux.gitjfs.QueryUtils;
 import io.github.oliviercailloux.jgit.JGit;
 import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
@@ -30,7 +38,7 @@ public class GitPathInternalTests {
 
 	@Test
 	void testBasics() throws Exception {
-		final GitRev main = GitRev.branch("main");
+		final GitRev main = GitPathRoot.DEFAULT_GIT_REF;
 		assertThrows(IllegalArgumentException.class, () -> getGitPath(main, ""));
 		assertThrows(IllegalArgumentException.class, () -> getGitPath(main, "ploum"));
 		assertThrows(IllegalArgumentException.class, () -> getGitPath(null, "/"));

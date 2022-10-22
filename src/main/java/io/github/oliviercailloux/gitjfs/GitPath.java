@@ -303,6 +303,22 @@ public abstract class GitPath implements Path {
 		return GitRelativePath.relative(getFileSystem(), internalPath);
 	}
 
+	/**
+	 * Returns a {@code Path} object representing the absolute path of this path.
+	 *
+	 * <p>
+	 * If this path is already {@link Path#isAbsolute absolute} then this method
+	 * simply returns this path. Otherwise, this method returns a path with a root
+	 * component referring to the <tt>main</tt> branch.
+	 *
+	 * <p>
+	 * This method does not access the underlying file system and requires no
+	 * specific permission.
+	 *
+	 */
+	@Override
+	public abstract GitPath toAbsolutePath();
+
 	GitAbsolutePath toAbsolutePathAsAbsolutePath() {
 		return (GitAbsolutePath) toAbsolutePath();
 	}

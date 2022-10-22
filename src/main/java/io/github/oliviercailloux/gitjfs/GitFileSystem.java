@@ -385,7 +385,8 @@ public abstract class GitFileSystem extends FileSystem {
 
 	private final Set<DirectoryStream<GitPath>> toClose;
 
-	final GitEmptyPath emptyPath = new GitEmptyPath();
+	final GitPathRootRef mainSlash = new GitPathRootRef(this, GitPathRoot.DEFAULT_GIT_REF);
+	final GitEmptyPath emptyPath = new GitEmptyPath(mainSlash);
 
 	/**
 	 * Git file system provides low-level access to read operations on a repository
