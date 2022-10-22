@@ -18,8 +18,8 @@ import org.eclipse.jgit.lib.ObjectId;
  * </ul>
  * <p>
  * This object is not associated to a file system, in other words, it only
- * contains “static” information and it may not represent anything that exists
- * in a file system. Its checks are only syntactic.
+ * contains “static” information and it may represent something that exists in
+ * no file system. Its checks are only syntactic.
  * <p>
  * May be created using a git ref short form: this starts with refs/ or heads/
  * or tags/.
