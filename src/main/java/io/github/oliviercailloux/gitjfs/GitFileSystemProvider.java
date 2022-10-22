@@ -536,7 +536,32 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	 * Throws {@code ReadOnlyFileSystemException}.
 	 */
 	@Override
+	public void createSymbolicLink(Path link, Path target, FileAttribute<?>... attrs)
+			throws ReadOnlyFileSystemException {
+		throw new ReadOnlyFileSystemException();
+	}
+
+	/**
+	 * Throws {@code ReadOnlyFileSystemException}.
+	 */
+	@Override
+	public void createLink(Path link, Path existing) throws ReadOnlyFileSystemException {
+		throw new ReadOnlyFileSystemException();
+	}
+
+	/**
+	 * Throws {@code ReadOnlyFileSystemException}.
+	 */
+	@Override
 	public void delete(Path path) throws ReadOnlyFileSystemException {
+		throw new ReadOnlyFileSystemException();
+	}
+
+	/**
+	 * Throws {@code ReadOnlyFileSystemException}.
+	 */
+	@Override
+	public boolean deleteIfExists(Path path) throws ReadOnlyFileSystemException {
 		throw new ReadOnlyFileSystemException();
 	}
 
