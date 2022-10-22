@@ -480,8 +480,8 @@ public class GitReadTests {
 		final String searched = "non-existing.png";
 
 		final GitPathRoot main = gitFs.getPathRoot("/refs/heads/main/");
-		final GitPathRoot relevantBranch = main.exists() ? main : gitFs.getPathRoot("/refs/heads/master/");
-		verify(relevantBranch.exists());
+		final GitPathRoot relevantBranch = Files.exists(main) ? main : gitFs.getPathRoot("/refs/heads/master/");
+		verify(Files.exists(relevantBranch));
 		final ObjectId id = relevantBranch.getCommit().id();
 		final GitPathRoot pathId = gitFs.getPathRoot(id);
 
