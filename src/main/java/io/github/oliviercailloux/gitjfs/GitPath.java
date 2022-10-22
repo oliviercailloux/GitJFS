@@ -167,7 +167,19 @@ import org.slf4j.LoggerFactory;
  * choice would also break the nice fact that the internal path in a git path
  * behaves like the sequence of names in a linux path, as <tt>/</tt> under Linux
  * is an empty sequence.)
- *
+ * <p>
+ * The Java FS API requires that relative paths be {@link Path#toAbsolutePath()
+ * automatically convertible} to absolute paths. This is arguably not very
+ * natural for git, as a git repository has no concept of a default branch. To
+ * comply with the requirement I have opted for the (probably) most commonly
+ * used first branch name, namely, {@code main}. Alternatively I could have
+ * looked automatically for the ref <a href=
+ * "https://superuser.com/questions/1718677#comment2652531_1718677">/refs/remotes/origin/</a>
+ * but this only introduces more complexity and requires another arguable
+ * choice, as someone’s remote may be named differently than {@code origin}.
+ * Whenever you need to convert a relative path to an absolute path, I advice to
+ * use an explicit absolute path (using explicity the branch {@code main} if
+ * desired) and resolve your relative path against this explicit absolute path.
  */
 public abstract class GitPath implements Path {
 	@SuppressWarnings("unused")
