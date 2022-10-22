@@ -182,9 +182,6 @@ public abstract class GitPathRoot extends GitAbsolutePath {
 	}
 
 	/**
-	 * TODO return an own type Commit with nice getTime, no getTree (unuseful),
-	 * getParents() that return other commits, and so on.
-	 *
 	 * If {@link #exists()} returns {@code false}, an exception is thrown.
 	 *
 	 * @return
