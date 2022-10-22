@@ -56,11 +56,6 @@ public class GitPathRootSha extends GitPathRoot {
 	}
 
 	@Override
-	public boolean exists() throws IOException {
-		return tryGetRevCommit().isPresent();
-	}
-
-	@Override
 	RevCommit getRevCommit() throws IOException, NoSuchFileException {
 		final Optional<RevCommit> commit = tryGetRevCommit();
 		if (commit.isEmpty()) {

@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import io.github.oliviercailloux.gitjfs.GitFileSystem.FollowLinksBehavior;
 import io.github.oliviercailloux.gitjfs.GitFileSystem.GitObject;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -20,6 +21,18 @@ import org.slf4j.LoggerFactory;
  * A git path root is an absolute git path that has an empty sequence of names.
  * In other words, it consists in a root component only. Its string form ends
  * with <tt>//</tt>.
+ * <p>
+ * Note that the commit referred to (possibly indirectly) by this git path root
+ * may not exist in the associated git file system. This occurs when either:
+ * </p>
+ * <ul>
+ * <li>this path root contains a git ref which does not exist in this
+ * repository;</li>
+ * <li>this path root contains a git ref which refers to a sha that is not a
+ * commit;</li>
+ * <li>this path root contains a sha that is not a commit or does not
+ * exist.</li>
+ * </ul>
  *
  * @see GitPath
  */
@@ -115,8 +128,8 @@ public abstract class GitPathRoot extends GitAbsolutePath {
 	 * This method does not access the file system.
 	 *
 	 * @return the git ref contained in this root component.
-	 * @throws IllegalArgumentException iff this root component does not contain a
-	 *                                  git ref
+	 * @throws IllegalStateException iff this root component does not contain a git
+	 *                               ref
 	 * @see #isRef()
 	 */
 	public String getGitRef() {
@@ -148,28 +161,6 @@ public abstract class GitPathRoot extends GitAbsolutePath {
 		return gitRev.getCommitId();
 	}
 
-	/**
-	 * Returns {@code true} iff the commit referred to (possibly indirectly) by this
-	 * git path root exists in the associated git file system.
-	 * <p>
-	 * Returns {@code false} when either:
-	 * </p>
-	 * <ul>
-	 * <li>this path root contains a git ref which does not exist in this
-	 * repository;</li>
-	 * <li>this path root contains a git ref which refers to a sha that is not a
-	 * commit;</li>
-	 * <li>this path root contains a sha that is not a commit or does not
-	 * exist.</li>
-	 * </ul>
-	 *
-	 * @throws IOException if an error occurs while accessing the underlying
-	 *                     repository
-	 *
-	 * @see #getCommit()
-	 */
-	public abstract boolean exists() throws IOException;
-
 	abstract RevCommit getRevCommit() throws IOException, NoSuchFileException;
 
 	@Override
@@ -182,14 +173,10 @@ public abstract class GitPathRoot extends GitAbsolutePath {
 	}
 
 	/**
-	 * If {@link #exists()} returns {@code false}, an exception is thrown.
-	 *
-	 * @return
-	 * @throws IOException
-	 * @throws NoSuchFileException
+	 * If {@link Files#exists} returns {@code false}, an exception is thrown.
 	 */
 	public Commit getCommit() throws IOException, NoSuchFileException {
-		/**
+		/*
 		 * I considered using dynamic fetching in the returned object: if the user only
 		 * wants the commit id, we don’t need to parse the commit, thus, we could parse
 		 * the commit on-demand. But this introduces complexities (we have to document
@@ -199,6 +186,15 @@ public abstract class GitPathRoot extends GitAbsolutePath {
 		 * them. Mostly, a vast series of commits would come from a desire to browse
 		 * (part of) the history, and this requires accessing the parent-of relation,
 		 * which requires parsing the commit.
+		 */
+		/*
+		 * NB this exists-based approach (rather than Optional on getCommit) seems
+		 * adequate because most of the time, the user will use commit ids, coming from
+		 * the history or the set of roots of this fs, and thus it is known that the
+		 * related commit exists. Similarly, if the user uses some ref, she must have
+		 * learned from somewhere that this ref exists in this repo. Only if the user
+		 * accesses the main branch should she test its existence, and even there,
+		 * perhaps she knows that this branch exists (e.g. her own repositories).
 		 */
 		return Commit.create(getRevCommit());
 	}

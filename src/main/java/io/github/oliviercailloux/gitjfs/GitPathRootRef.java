@@ -53,24 +53,6 @@ public class GitPathRootRef extends GitPathRoot {
 	}
 
 	@Override
-	public boolean exists() throws IOException {
-		/**
-		 * NB this exists-based approach (rather than Optional on getCommit) seems
-		 * adequate because most of the time, the user will use commit ids, coming from
-		 * the history or the set of roots of this fs, and thus it is known that the
-		 * related commit exists. Similarly, if the user uses some ref, she must have
-		 * learned from somewhere that this ref exists in this repo. Only if the user
-		 * accesses the main branch should she test its existence, and even there,
-		 * perhaps she knows that this branch exists (e.g. her own repositories).
-		 */
-		refreshCache();
-		if (sha == null) {
-			return false;
-		}
-		return sha.exists();
-	}
-
-	@Override
 	RevCommit getRevCommit() throws IOException, NoSuchFileException {
 		return toSha().getRevCommit();
 	}

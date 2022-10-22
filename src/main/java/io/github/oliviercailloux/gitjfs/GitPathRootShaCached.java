@@ -30,11 +30,6 @@ public class GitPathRootShaCached extends GitPathRootSha {
 	}
 
 	@Override
-	public boolean exists() {
-		return true;
-	}
-
-	@Override
 	RevCommit getRevCommit() {
 		verify(!revCommit.isEmpty());
 		return revCommit.get();
