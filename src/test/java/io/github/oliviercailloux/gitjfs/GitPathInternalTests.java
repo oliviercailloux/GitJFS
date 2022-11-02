@@ -11,7 +11,7 @@ import com.google.common.net.UrlEscapers;
 import io.github.oliviercailloux.gitjfs.GitAbsolutePath;
 import io.github.oliviercailloux.gitjfs.GitFileSystem;
 import io.github.oliviercailloux.gitjfs.GitFileSystemProvider;
-import io.github.oliviercailloux.gitjfs.GitPath;
+import io.github.oliviercailloux.gitjfs.GitPathImpl;
 import io.github.oliviercailloux.gitjfs.GitPathRoot;
 import io.github.oliviercailloux.gitjfs.GitRelativePath;
 import io.github.oliviercailloux.gitjfs.GitRev;
@@ -133,7 +133,7 @@ public class GitPathInternalTests {
 		assertNotEquals(getGitPath(null, "truc/chose"), getGitPath(main, "/truc/chose"));
 	}
 
-	private GitPath getGitPath(GitRev root, String dirAndFile) {
+	private GitPathImpl getGitPath(GitRev root, String dirAndFile) {
 		if (root != null) {
 			return GitAbsolutePath.givenRoot(
 					GitPathRoot.given(GitFileSystemCreatePathsTests.GIT_FILE_FILE_SYSTEM_MOCKED, root),

@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
 /**
  * <p>
  * A git file system. Associated to a git repository. Can be used to obtain
- * {@link GitPath} instances.
+ * {@link GitPathImpl} instances.
  * </p>
  * <p>
  * Must be {@link #close() closed} to release resources associated with readers.
@@ -383,7 +383,7 @@ public abstract class GitFileSystem extends FileSystem {
 	private final Repository repository;
 	private final boolean shouldCloseRepository;
 
-	private final Set<DirectoryStream<GitPath>> toClose;
+	private final Set<DirectoryStream<GitPathImpl>> toClose;
 
 	final GitPathRootRef mainSlash = new GitPathRootRef(this, GitPathRoot.DEFAULT_GIT_REF);
 	final GitEmptyPath emptyPath = new GitEmptyPath(mainSlash);
@@ -423,7 +423,7 @@ public abstract class GitFileSystem extends FileSystem {
 			}
 		}
 		for (@SuppressWarnings("resource")
-		DirectoryStream<GitPath> closeable : toClose) {
+		DirectoryStream<GitPathImpl> closeable : toClose) {
 			try {
 				closeable.close();
 			} catch (IOException e) {
@@ -466,7 +466,7 @@ public abstract class GitFileSystem extends FileSystem {
 	 * @throws InvalidPathException If the path string cannot be converted
 	 */
 	@Override
-	public GitPath getPath(String first, String... more) {
+	public GitPathImpl getPath(String first, String... more) {
 		final ImmutableList<String> allNames = Stream.concat(Stream.of(first), Stream.of(more))
 				.collect(ImmutableList.toImmutableList());
 
@@ -516,9 +516,9 @@ public abstract class GitFileSystem extends FileSystem {
 	 * @return an absolute git path.
 	 * @throws InvalidPathException if {@code first} does not contain a syntaxically
 	 *                              valid root component
-	 * @see GitPath
+	 * @see GitPathImpl
 	 */
-	public GitPath getAbsolutePath(String first, String... more) throws InvalidPathException {
+	public GitPathImpl getAbsolutePath(String first, String... more) throws InvalidPathException {
 		final String rootStringForm;
 		final ImmutableList<String> internalPath;
 		if (first.contains("//")) {
@@ -553,9 +553,9 @@ public abstract class GitFileSystem extends FileSystem {
 	 * @param internalPath1 may start with a slash.
 	 * @param internalPath  may start with a slash.
 	 * @return an absolute path
-	 * @see GitPath
+	 * @see GitPathImpl
 	 */
-	public GitPath getAbsolutePath(ObjectId commitId, String internalPath1, String... internalPath) {
+	public GitPathImpl getAbsolutePath(ObjectId commitId, String internalPath1, String... internalPath) {
 		final String internalPath1StartsRight = internalPath1.startsWith("/") ? internalPath1 : "/" + internalPath1;
 		final ImmutableList<String> givenMore = Streams
 				.concat(Stream.of(internalPath1StartsRight), Stream.of(internalPath))
@@ -626,9 +626,9 @@ public abstract class GitFileSystem extends FileSystem {
 	 * @return a relative git path.
 	 * @throws InvalidPathException if the first non-empty string in {@code names}
 	 *                              start with {@code /}.
-	 * @see GitPath
+	 * @see GitPathImpl
 	 */
-	public GitPath getRelativePath(String... names) throws InvalidPathException {
+	public GitPathImpl getRelativePath(String... names) throws InvalidPathException {
 		return GitRelativePath.relative(this, ImmutableList.copyOf(names));
 	}
 
@@ -1024,7 +1024,7 @@ public abstract class GitFileSystem extends FileSystem {
 		return Optional.of(possibleCommitId);
 	}
 
-	void toClose(DirectoryStream<GitPath> stream) {
+	void toClose(DirectoryStream<GitPathImpl> stream) {
 		toClose.add(stream);
 	}
 

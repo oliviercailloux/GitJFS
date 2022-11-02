@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * A git path with a root component and a (possibly empty) sequence of non-empty
  * names.
  */
-abstract class GitAbsolutePath extends GitPath {
+abstract class GitAbsolutePath extends GitPathImpl {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitAbsolutePath.class);
 
@@ -245,7 +245,7 @@ abstract class GitAbsolutePath extends GitPath {
 		return gitBasicFileAttributes;
 	}
 
-	GitPath readSymbolicLink()
+	GitPathImpl readSymbolicLink()
 			throws IOException, NoSuchFileException, NotLinkException, AbsoluteLinkException, SecurityException {
 		final GitObject gitObject = getGitObject(FollowLinksBehavior.FOLLOW_LINKS_BUT_END);
 		if (!gitObject.getFileMode().equals(FileMode.SYMLINK)) {

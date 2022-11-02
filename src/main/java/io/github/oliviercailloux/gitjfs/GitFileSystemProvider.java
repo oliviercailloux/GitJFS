@@ -122,7 +122,7 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	 * </p>
 	 * <p>
 	 * Such an URI can have been obtained by a call to
-	 * {@link GitFileFileSystem#toUri()}, or by a call to {@link GitPath#toUri()} on
+	 * {@link GitFileFileSystem#toUri()}, or by a call to {@link GitPathImpl#toUri()} on
 	 * an instance of a git path associated with a {@link GitFileFileSystem}
 	 * instance. In both cases, under condition of having used the same version of
 	 * this library.
@@ -377,7 +377,7 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	 * <p>
 	 * The given URI must have been returned by a call to
 	 * {@link GitFileSystem#toUri()} on a git file system instance created by this
-	 * provider and that is still open; or by {@link GitPath#toUri()} on a git path
+	 * provider and that is still open; or by {@link GitPathImpl#toUri()} on a git path
 	 * instance associated to a git file system created by this provider and that is
 	 * still open.
 	 * </p>
@@ -392,7 +392,7 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	 * </p>
 	 *
 	 * @param gitFsUri the uri as returned by {@link GitFileSystem#toUri()} or
-	 *                 {@link GitPath#toUri()}.
+	 *                 {@link GitPathImpl#toUri()}.
 	 * @return an already existing, open git file system.
 	 * @throws FileSystemNotFoundException if no corresponding file system is found.
 	 */
@@ -443,7 +443,7 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	/**
 	 * <p>
 	 * Returns a {@code Path} object by converting the given {@link URI}. The given
-	 * uri must have been returned by {@link GitPath#toUri()} on a path associated
+	 * uri must have been returned by {@link GitPathImpl#toUri()} on a path associated
 	 * to an open git file system created by this provider, or directly by
 	 * {@link GitFileSystem#toUri()} on an open git file system created by this
 	 * provider.
@@ -464,22 +464,22 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	 *
 	 * @throws IllegalArgumentException    If the given URI has not been issued by
 	 *                                     {@link GitFileSystem#toUri()} or
-	 *                                     {@link GitPath#toUri()}.
+	 *                                     {@link GitPathImpl#toUri()}.
 	 * @throws FileSystemNotFoundException If the file system, indirectly identified
 	 *                                     by the URI, is not open or has not been
 	 *                                     created by this provider.
 	 */
 	@Override
 	@SuppressWarnings("resource")
-	public GitPath getPath(URI gitFsUri) {
+	public GitPathImpl getPath(URI gitFsUri) {
 		final GitFileSystem fs = fses.getFileSystem(gitFsUri);
-		return GitPath.fromQueryString(fs, QueryUtils.splitQuery(gitFsUri));
+		return GitPathImpl.fromQueryString(fs, QueryUtils.splitQuery(gitFsUri));
 	}
 
 	@Override
 	public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)
 			throws IOException {
-		checkArgument(path instanceof GitPath);
+		checkArgument(path instanceof GitPathImpl);
 		if (attrs.length >= 1) {
 			throw new ReadOnlyFileSystemException();
 		}
@@ -490,7 +490,7 @@ public class GitFileSystemProvider extends FileSystemProvider {
 			throw new ReadOnlyFileSystemException();
 		}
 
-		final GitPath gitPath = (GitPath) path;
+		final GitPathImpl gitPath = (GitPathImpl) path;
 		return gitPath.toAbsolutePathAsAbsolutePath().newByteChannel(true);
 	}
 
@@ -502,14 +502,14 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	 * GitPath}.
 	 *
 	 * @throws IllegalArgumentException if {@code dir} cannot be cast to
-	 *                                  {@link GitPath}
+	 *                                  {@link GitPathImpl}
 	 */
 	@SuppressWarnings("resource")
 	@Override
 	public DirectoryStream<Path> newDirectoryStream(Path dir, Filter<? super Path> filter) throws IOException {
-		checkArgument(dir instanceof GitPath);
-		final GitPath gitPath = (GitPath) dir;
-		final DirectoryStream<GitPath> newDirectoryStream = gitPath.newDirectoryStream(filter);
+		checkArgument(dir instanceof GitPathImpl);
+		final GitPathImpl gitPath = (GitPathImpl) dir;
+		final DirectoryStream<GitPathImpl> newDirectoryStream = gitPath.newDirectoryStream(filter);
 		return new DirectoryStream<>() {
 
 			@Override
@@ -611,8 +611,8 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	@Override
 	public void checkAccess(Path path, AccessMode... modes)
 			throws ReadOnlyFileSystemException, AccessDeniedException, NoSuchFileException, IOException {
-		checkArgument(path instanceof GitPath);
-		final GitPath gitPath = (GitPath) path;
+		checkArgument(path instanceof GitPathImpl);
+		final GitPathImpl gitPath = (GitPathImpl) path;
 
 		final ImmutableSet<AccessMode> modesList = ImmutableSet.copyOf(modes);
 		if (modesList.contains(AccessMode.WRITE)) {
@@ -648,8 +648,8 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	@Override
 	public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options)
 			throws IOException {
-		checkArgument(path instanceof GitPath);
-		final GitPath gitPath = (GitPath) path;
+		checkArgument(path instanceof GitPathImpl);
+		final GitPathImpl gitPath = (GitPathImpl) path;
 
 		if (!type.equals(BasicFileAttributes.class)) {
 			throw new UnsupportedOperationException();
@@ -680,9 +680,9 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	@Override
 	public Path readSymbolicLink(Path link)
 			throws IOException, NoSuchFileException, NotLinkException, AbsoluteLinkException, SecurityException {
-		checkArgument(link instanceof GitPath);
+		checkArgument(link instanceof GitPathImpl);
 
-		final GitPath gitPath = (GitPath) link;
+		final GitPathImpl gitPath = (GitPathImpl) link;
 		return gitPath.toAbsolutePathAsAbsolutePath().readSymbolicLink();
 	}
 

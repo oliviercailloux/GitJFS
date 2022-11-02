@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * and has the same internal path except that its internal path is absolute
  * instead of relative.
  */
-abstract class GitRelativePath extends GitPath {
+abstract class GitRelativePath extends GitPathImpl {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitRelativePath.class);
 
@@ -73,7 +73,7 @@ abstract class GitRelativePath extends GitPath {
 	 * Returns a git path whose root component refers to the main branch.
 	 */
 	@Override
-	public abstract GitPath toAbsolutePath();
+	public abstract GitPathImpl toAbsolutePath();
 
 	@Override
 	public GitPathRoot getRoot() {

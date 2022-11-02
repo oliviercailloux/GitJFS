@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * exist.</li>
  * </ul>
  *
- * @see GitPath
+ * @see GitPathImpl
  */
 public abstract class GitPathRoot extends GitAbsolutePath {
 	public static final GitRev DEFAULT_GIT_REF = GitRev.shortRef("refs/heads/main");

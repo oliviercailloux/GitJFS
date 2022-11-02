@@ -236,7 +236,7 @@ public class GitReadTests {
 						gitFs.getRelativePath().toRealPath(LinkOption.NOFOLLOW_LINKS));
 				assertEquals(gitFs.getRelativePath().toAbsolutePath(), gitFs.getRelativePath().toRealPath());
 
-				final GitPath c1File1 = gitFs.getPathRoot(commit1).resolve("file1.txt");
+				final GitPathImpl c1File1 = gitFs.getPathRoot(commit1).resolve("file1.txt");
 				assertEquals(c1File1, c1File1.toRealPath(LinkOption.NOFOLLOW_LINKS));
 				assertEquals(c1File1, c1File1.toRealPath());
 
@@ -444,9 +444,9 @@ public class GitReadTests {
 		try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			JGit.createRepoWithSubDir(repo);
 			try (GitFileSystem gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repo)) {
-				final ImmutableSet<GitPath> subEntries = ImmutableSet.of(gitFs.getRelativePath("dir"),
+				final ImmutableSet<GitPathImpl> subEntries = ImmutableSet.of(gitFs.getRelativePath("dir"),
 						gitFs.getRelativePath("file1.txt"), gitFs.getRelativePath("file2.txt"));
-				final ImmutableSet<GitPath> subEntriesAbsolute = ImmutableSet.of(
+				final ImmutableSet<GitPathImpl> subEntriesAbsolute = ImmutableSet.of(
 						gitFs.getRelativePath("dir").toAbsolutePath(),
 						gitFs.getRelativePath("file1.txt").toAbsolutePath(),
 						gitFs.getRelativePath("file2.txt").toAbsolutePath());
