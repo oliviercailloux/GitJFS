@@ -74,7 +74,7 @@ class GitFileSystems {
 	 *         this URI refers to.
 	 */
 	public Path getGitDir(URI gitFileUri) {
-		checkArgument(Objects.equals(gitFileUri.getScheme(), GitFileSystemProvider.SCHEME));
+		checkArgument(Objects.equals(gitFileUri.getScheme(), GitFileSystemProviderImpl.SCHEME));
 		checkArgument(Objects.equals(gitFileUri.getAuthority(), FILE_AUTHORITY),
 				"Unexpected authority: " + gitFileUri.getAuthority() + ", expected " + FILE_AUTHORITY + ".");
 		/**
@@ -94,7 +94,7 @@ class GitFileSystems {
 	}
 
 	private String getRepositoryName(URI gitDfsUri) {
-		checkArgument(Objects.equals(gitDfsUri.getScheme(), GitFileSystemProvider.SCHEME));
+		checkArgument(Objects.equals(gitDfsUri.getScheme(), GitFileSystemProviderImpl.SCHEME));
 		checkArgument(Objects.equals(gitDfsUri.getAuthority(), DFS_AUTHORITY));
 		final String path = gitDfsUri.getPath();
 		verify(path.startsWith("/"));
@@ -104,7 +104,7 @@ class GitFileSystems {
 
 	@SuppressWarnings("resource")
 	public GitFileSystemImpl getFileSystem(URI gitUri) throws FileSystemNotFoundException {
-		checkArgument(Objects.equals(gitUri.getScheme(), GitFileSystemProvider.SCHEME));
+		checkArgument(Objects.equals(gitUri.getScheme(), GitFileSystemProviderImpl.SCHEME));
 		final String authority = gitUri.getAuthority();
 		checkArgument(authority != null);
 		final GitFileSystemImpl fs;
@@ -145,7 +145,7 @@ class GitFileSystems {
 			final String pathStr = gitDir.toAbsolutePath().toString();
 			final String pathStrSlash = pathStr.endsWith("/") ? pathStr : pathStr + "/";
 			return URI_UNCHECKER
-					.getUsing(() -> new URI(GitFileSystemProvider.SCHEME, FILE_AUTHORITY, pathStrSlash, null));
+					.getUsing(() -> new URI(GitFileSystemProviderImpl.SCHEME, FILE_AUTHORITY, pathStrSlash, null));
 		}
 
 		if (gitFs instanceof GitDfsFileSystem) {
@@ -161,7 +161,7 @@ class GitFileSystems {
 			 * treat them as segment separators: if the user used slashes in the repository
 			 * name, it might well be with the intent of separating segments.
 			 */
-			return URI_UNCHECKER.getUsing(() -> new URI(GitFileSystemProvider.SCHEME, DFS_AUTHORITY, "/" + name, null));
+			return URI_UNCHECKER.getUsing(() -> new URI(GitFileSystemProviderImpl.SCHEME, DFS_AUTHORITY, "/" + name, null));
 		}
 
 		throw new IllegalArgumentException("Unknown repository type.");

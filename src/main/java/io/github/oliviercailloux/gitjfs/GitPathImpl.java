@@ -181,7 +181,7 @@ import org.slf4j.LoggerFactory;
  * use an explicit absolute path (using explicity the branch {@code main} if
  * desired) and resolve your relative path against this explicit absolute path.
  */
-public abstract class GitPathImpl implements Path, GitPath {
+public abstract class GitPathImpl implements GitPath {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitPathImpl.class);
 
@@ -285,7 +285,7 @@ public abstract class GitPathImpl implements Path, GitPath {
 			final String internalPathString = internalPathValue.get();
 			final Path internalPath = GitFileSystemImpl.JIM_FS_EMPTY.resolve(internalPathString);
 			checkArgument(internalPath.isAbsolute());
-			return GitAbsolutePath.givenRoot(GitPathRoot.given(fs, GitRev.stringForm(rootString)), internalPath);
+			return GitAbsolutePath.givenRoot(GitPathRootImpl.given(fs, GitRev.stringForm(rootString)), internalPath);
 		}
 
 		final Path internalPath = GitFileSystemImpl.JIM_FS_EMPTY.resolve(internalPathValue.orElse(""));
@@ -304,7 +304,7 @@ public abstract class GitPathImpl implements Path, GitPath {
 			return this;
 		}
 
-		final GitPathRoot root = getRoot();
+		final GitPathRootImpl root = getRoot();
 
 		if (internalPath.isAbsolute()) {
 			checkArgument(root != null);
@@ -357,7 +357,7 @@ public abstract class GitPathImpl implements Path, GitPath {
 	 *
 	 */
 	@Override
-	public abstract GitPathRoot getRoot();
+	public abstract GitPathRootImpl getRoot();
 
 	@Override
 	public int getNameCount() {
@@ -608,7 +608,7 @@ public abstract class GitPathImpl implements Path, GitPath {
 	 * Returns a URI referring to the git file system instance associated to this
 	 * path, and referring to this specific file in that file system.
 	 *
-	 * @see GitFileSystemProvider#getPath(URI)
+	 * @see GitFileSystemProviderImpl#getPath(URI)
 	 */
 	@SuppressWarnings("resource")
 	@Override
@@ -772,7 +772,7 @@ public abstract class GitPathImpl implements Path, GitPath {
 
 	@SuppressWarnings("resource")
 	DirectoryStream<GitPathImpl> newDirectoryStream(Filter<? super GitPathImpl> filter) throws IOException {
-		final GitPathRootSha sha = toAbsolutePathAsAbsolutePath().getRoot().toSha();
+		final GitPathRootShaImpl sha = toAbsolutePathAsAbsolutePath().getRoot().toSha();
 		/**
 		 * Note: this can’t be moved to GitAbsolutePath: a directory stream on a
 		 * relative path differs by resolving against a relative path.
@@ -829,7 +829,7 @@ public abstract class GitPathImpl implements Path, GitPath {
 	 * @return the same kind (relative VS absolute) as this instance, representing
 	 *         an entry in this directory.
 	 */
-	GitPathImpl toNewEntry(GitPathRootSha sha, Path absoluteRealInternalPath, GitStringObject localGitObject) {
+	GitPathImpl toNewEntry(GitPathRootShaImpl sha, Path absoluteRealInternalPath, GitStringObject localGitObject) {
 		final String name = localGitObject.getFileName();
 		final Path newInternal = getInternalPath().resolve(name);
 		final GitPathImpl newPath = withPath(newInternal);

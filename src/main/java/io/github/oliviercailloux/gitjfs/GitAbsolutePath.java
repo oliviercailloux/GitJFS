@@ -147,7 +147,7 @@ abstract class GitAbsolutePath extends GitPathImpl {
 	 * @param names may contain empty strings but must contain some non-empty
 	 *              strings; first non-empty string must start with a slash
 	 */
-	static GitAbsolutePath givenRoot(GitPathRoot root, List<String> names) {
+	static GitAbsolutePath givenRoot(GitPathRootImpl root, List<String> names) {
 		checkNotNull(root);
 		checkArgument(!names.isEmpty());
 		final String first = names.isEmpty() ? "" : names.get(0);
@@ -161,7 +161,7 @@ abstract class GitAbsolutePath extends GitPathImpl {
 		return givenRoot(root, internal);
 	}
 
-	static GitAbsolutePath givenRoot(GitPathRoot root, Path internalPath) {
+	static GitAbsolutePath givenRoot(GitPathRootImpl root, Path internalPath) {
 		checkNotNull(root);
 		checkArgument(internalPath.isAbsolute());
 

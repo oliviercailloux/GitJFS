@@ -27,12 +27,12 @@ class GitAbsolutePathWithInternal extends GitAbsolutePath {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitAbsolutePathWithInternal.class);
 
-	private final GitPathRoot root;
+	private final GitPathRootImpl root;
 	/**
 	 * Needed to check whether our root has changed (possible if it is a git rev),
 	 * in which case our cache becomes invalid.
 	 */
-	private GitPathRootSha lastRootSha;
+	private GitPathRootShaImpl lastRootSha;
 
 	/**
 	 * A cache. This is good value for money (price is just a bit of memory) : about
@@ -64,7 +64,7 @@ class GitAbsolutePathWithInternal extends GitAbsolutePath {
 
 	private final Path internalPath;
 
-	GitAbsolutePathWithInternal(GitPathRoot root, Path internalPath) {
+	GitAbsolutePathWithInternal(GitPathRootImpl root, Path internalPath) {
 		this.root = checkNotNull(root);
 		this.internalPath = checkNotNull(internalPath);
 		checkArgument(internalPath.isAbsolute());
@@ -96,13 +96,13 @@ class GitAbsolutePathWithInternal extends GitAbsolutePath {
 	}
 
 	@Override
-	public GitPathRoot getRoot() {
+	public GitPathRootImpl getRoot() {
 		return root;
 	}
 
 	@Override
 	GitRelativePathWithInternal toRelativePath() {
-		if (root.toStaticRev().equals(GitPathRoot.DEFAULT_GIT_REF)) {
+		if (root.toStaticRev().equals(GitPathRootImpl.DEFAULT_GIT_REF)) {
 			return new GitRelativePathWithInternal(this);
 		}
 		final GitFileSystemImpl fileSystem = getFileSystem();
@@ -113,7 +113,7 @@ class GitAbsolutePathWithInternal extends GitAbsolutePath {
 	@Override
 	GitObject getGitObject(FollowLinksBehavior behavior)
 			throws NoSuchFileException, PathCouldNotBeFoundException, IOException {
-		final GitPathRootSha current = root.toSha();
+		final GitPathRootShaImpl current = root.toSha();
 		if (!current.equals(lastRootSha)) {
 			cachedRealGitObject = null;
 			cachedLinkGitObject = null;
@@ -147,7 +147,7 @@ class GitAbsolutePathWithInternal extends GitAbsolutePath {
 		return toReturn;
 	}
 
-	private GitObject doGetGitObject(GitPathRootSha rootSha, FollowLinksBehavior behavior)
+	private GitObject doGetGitObject(GitPathRootShaImpl rootSha, FollowLinksBehavior behavior)
 			throws IOException, NoSuchFileException, PathCouldNotBeFoundException {
 		LOGGER.debug("Getting git object of {} with behavior {}.", toString(), behavior);
 		final Path relative = GitFileSystemImpl.JIM_FS_SLASH.relativize(getInternalPath());
@@ -200,7 +200,7 @@ class GitAbsolutePathWithInternal extends GitAbsolutePath {
 		return tree;
 	}
 
-	void setRealGitObject(GitPathRootSha rootSha, GitObject gitObject) {
+	void setRealGitObject(GitPathRootShaImpl rootSha, GitObject gitObject) {
 		lastRootSha = checkNotNull(rootSha);
 		cachedRealGitObject = checkNotNull(gitObject);
 		if (!cachedRealGitObject.getFileMode().equals(FileMode.TYPE_SYMLINK)) {
@@ -210,7 +210,7 @@ class GitAbsolutePathWithInternal extends GitAbsolutePath {
 		}
 	}
 
-	void setLinkGitObject(GitPathRootSha rootSha, GitObject gitObject) {
+	void setLinkGitObject(GitPathRootShaImpl rootSha, GitObject gitObject) {
 		lastRootSha = checkNotNull(rootSha);
 		cachedRealGitObject = null;
 		cachedLinkGitObject = checkNotNull(gitObject);

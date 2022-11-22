@@ -82,7 +82,7 @@ public class GitReadTests {
 	void testReadFiles() throws Exception {
 		try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			final ImmutableList<ObjectId> commits = JGit.createRepoWithSubDir(repo);
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repo)) {
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
 				assertEquals("Hello, world", Files.readString(gitFs.getRelativePath("file1.txt")));
 				assertEquals("Hello, world", Files.readString(gitFs.getRelativePath("./file1.txt")));
 				assertEquals("Hello, world", Files.readString(gitFs.getRelativePath(".", "dir", "..", "/file1.txt")));
@@ -110,7 +110,7 @@ public class GitReadTests {
 		try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			final ImmutableList<ObjectId> commits = JGit.createRepoWithLink(repo);
 
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repo)) {
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
 				assertEquals("Hello, world", Files.readString(gitFs.getAbsolutePath(commits.get(0), "/file1.txt")));
 				assertEquals("Hello, world", Files.readString(gitFs.getAbsolutePath(commits.get(0), "/link.txt")));
 				assertThrows(PathCouldNotBeFoundException.class,
@@ -152,7 +152,7 @@ public class GitReadTests {
 	void testExists() throws Exception {
 		try (DfsRepository repository = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			final ImmutableList<ObjectId> commits = JGit.createRepoWithSubDir(repository);
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repository)) {
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repository)) {
 				assertTrue(Files.exists(gitFs.getRelativePath()));
 				assertTrue(Files.exists(gitFs.getRelativePath().toAbsolutePath()));
 				assertTrue(Files.exists(gitFs.getAbsolutePath("/refs/heads/main/")));
@@ -178,7 +178,7 @@ public class GitReadTests {
 	void testTreeWalk() throws Exception {
 		try (DfsRepository repository = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			JGit.createRepoWithSubDir(repository);
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repository)) {
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repository)) {
 				final RevTree root = gitFs.getRelativePath().toAbsolutePath().getRoot().getRevTree();
 				try (TreeWalk treeWalk = new TreeWalk(repository)) {
 					treeWalk.addTree(root);
@@ -214,7 +214,7 @@ public class GitReadTests {
 	void testAttributes() throws Exception {
 		try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			final ImmutableList<ObjectId> commits = JGit.createRepoWithSubDir(repo);
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repo)) {
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
 				assertThrows(NoSuchFileException.class,
 						() -> ((GitAbsolutePath) gitFs.getAbsolutePath(commits.get(0), "/ploum.txt"))
 								.readAttributes(ImmutableSet.of()));
@@ -231,7 +231,7 @@ public class GitReadTests {
 			final ObjectId commit2 = commits.get(1);
 			final ObjectId commit3 = commits.get(2);
 			final ObjectId commit4 = commits.get(3);
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repo)) {
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
 				assertEquals(gitFs.getRelativePath().toAbsolutePath(),
 						gitFs.getRelativePath().toRealPath(LinkOption.NOFOLLOW_LINKS));
 				assertEquals(gitFs.getRelativePath().toAbsolutePath(), gitFs.getRelativePath().toRealPath());
@@ -319,7 +319,7 @@ public class GitReadTests {
 	void testStartsWith() throws Exception {
 		try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			JGit.createRepoWithSubDir(repo);
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repo)) {
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
 				assertTrue(
 						gitFs.getRelativePath().toAbsolutePath().startsWith(gitFs.getRelativePath().toAbsolutePath()));
 				assertTrue(gitFs.getRelativePath("ploum.txt").toAbsolutePath()
@@ -366,23 +366,23 @@ public class GitReadTests {
 	void testGraph() throws Exception {
 		try (DfsRepository repository = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			final ImmutableList<ObjectId> commits = JGit.createBasicRepo(repository);
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repository)) {
-				final Function<? super ObjectId, GitPathRootSha> oToP = gitFs::getPathRoot;
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repository)) {
+				final Function<? super ObjectId, GitPathRootShaImpl> oToP = gitFs::getPathRoot;
 				LOGGER.debug("Commits: {}.", commits);
 				assertEquals(toGraph(commits, oToP), gitFs.getCommitsGraph());
 			}
 		}
 		try (DfsRepository repository = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			final ImmutableList<ObjectId> commits = JGit.createRepoWithSubDir(repository);
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repository)) {
-				final Function<? super ObjectId, GitPathRootSha> oToP = gitFs::getPathRoot;
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repository)) {
+				final Function<? super ObjectId, GitPathRootShaImpl> oToP = gitFs::getPathRoot;
 				assertEquals(toGraph(commits, oToP), gitFs.getCommitsGraph());
 			}
 		}
 	}
 
-	private MutableGraph<GitPathRootSha> toGraph(final ImmutableList<ObjectId> commits,
-			final Function<? super ObjectId, GitPathRootSha> oToP) {
+	private MutableGraph<GitPathRootShaImpl> toGraph(final ImmutableList<ObjectId> commits,
+			final Function<? super ObjectId, GitPathRootShaImpl> oToP) {
 		return GraphUtils.transformed(GraphUtils.asGraph(commits), Maps.asMap(ImmutableSet.copyOf(commits), oToP));
 	}
 
@@ -390,8 +390,8 @@ public class GitReadTests {
 	void testRefs() throws Exception {
 		try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			JGit.createBasicRepo(repo);
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repo)) {
-				final ImmutableSet<GitPathRootRef> refPaths = gitFs.getRefs();
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
+				final ImmutableSet<GitPathRootRefImpl> refPaths = gitFs.getRefs();
 				assertEquals(1, refPaths.size());
 				assertEquals("refs/heads/main", Iterables.getOnlyElement(refPaths).getGitRef());
 			}
@@ -402,7 +402,7 @@ public class GitReadTests {
 	void testFind() throws Exception {
 		try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			JGit.createRepoWithSubDir(repo);
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repo)) {
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
 				assertEquals(
 						ImmutableSet.of(gitFs.getRelativePath(), gitFs.getRelativePath("file1.txt"),
 								gitFs.getRelativePath("file2.txt"), gitFs.getRelativePath("dir"),
@@ -421,7 +421,7 @@ public class GitReadTests {
 	void testReadDir() throws Exception {
 		try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			JGit.createBasicRepo(repo);
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repo)) {
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
 				assertThrows(NoSuchFileException.class, () -> Files
 						.newDirectoryStream(gitFs.getRelativePath("no such dir").toAbsolutePath(), (p) -> true));
 				assertEquals(
@@ -443,7 +443,7 @@ public class GitReadTests {
 	void testReadSubDir() throws Exception {
 		try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			JGit.createRepoWithSubDir(repo);
-			try (GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromDfsRepository(repo)) {
+			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
 				final ImmutableSet<GitPathImpl> subEntries = ImmutableSet.of(gitFs.getRelativePath("dir"),
 						gitFs.getRelativePath("file1.txt"), gitFs.getRelativePath("file2.txt"));
 				final ImmutableSet<GitPathImpl> subEntriesAbsolute = ImmutableSet.of(
@@ -468,7 +468,7 @@ public class GitReadTests {
 		}
 
 		try (Repository repository = new FileRepositoryBuilder().setWorkTree(repoWorkDir.toFile()).build();
-				GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromRepository(repository)) {
+				GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromRepository(repository)) {
 			search(repository, gitFs);
 			search(repository, gitFs);
 			search(repository, gitFs);
@@ -479,11 +479,11 @@ public class GitReadTests {
 			MissingObjectException, IncorrectObjectTypeException, CorruptObjectException {
 		final String searched = "non-existing.png";
 
-		final GitPathRoot main = gitFs.getPathRoot("/refs/heads/main/");
-		final GitPathRoot relevantBranch = Files.exists(main) ? main : gitFs.getPathRoot("/refs/heads/master/");
+		final GitPathRootImpl main = gitFs.getPathRoot("/refs/heads/main/");
+		final GitPathRootImpl relevantBranch = Files.exists(main) ? main : gitFs.getPathRoot("/refs/heads/master/");
 		verify(Files.exists(relevantBranch));
 		final ObjectId id = relevantBranch.getCommit().id();
-		final GitPathRoot pathId = gitFs.getPathRoot(id);
+		final GitPathRootImpl pathId = gitFs.getPathRoot(id);
 
 		LOGGER.info("Searching for file directly.");
 		try (ObjectReader reader = repository.newObjectReader();
@@ -541,7 +541,7 @@ public class GitReadTests {
 		final GitUri uri = RepositoryCoordinates.from("git@github.com", "oliviercailloux-org", "minimax-ex").asGitUri();
 		LOGGER.info("From {}.", uri.asString());
 		try (FileRepository repository = download(uri, repoWorkDir);
-				GitFileSystemImpl gitFs = GitFileSystemProvider.getInstance().newFileSystemFromRepository(repository)) {
+				GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromRepository(repository)) {
 			search(repository, gitFs);
 			search(repository, gitFs);
 			search(repository, gitFs);

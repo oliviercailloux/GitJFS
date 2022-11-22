@@ -8,7 +8,7 @@ import org.eclipse.jgit.internal.storage.dfs.DfsRepository;
 /**
  * A git file system that rests on a (user-managed) {@link DfsRepository}.
  *
- * @see GitFileSystemProvider#newFileSystemFromDfsRepository(DfsRepository)
+ * @see GitFileSystemProviderImpl#newFileSystemFromDfsRepository(DfsRepository)
  */
 public class GitDfsFileSystem extends GitFileSystemImpl {
 
@@ -19,11 +19,11 @@ public class GitDfsFileSystem extends GitFileSystemImpl {
 	 */
 	private final DfsRepository repository;
 
-	static GitDfsFileSystem givenUserRepository(GitFileSystemProvider provider, DfsRepository repository) {
+	static GitDfsFileSystem givenUserRepository(GitFileSystemProviderImpl provider, DfsRepository repository) {
 		return new GitDfsFileSystem(provider, repository);
 	}
 
-	private GitDfsFileSystem(GitFileSystemProvider gitProvider, DfsRepository repository) {
+	private GitDfsFileSystem(GitFileSystemProviderImpl gitProvider, DfsRepository repository) {
 		super(gitProvider, repository, false);
 		verifyNotNull(repository.getDescription());
 		checkArgument(repository.getDescription().getRepositoryName() != null);

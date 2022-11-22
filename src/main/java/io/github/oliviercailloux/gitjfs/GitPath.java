@@ -8,6 +8,25 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
+/**
+ * A git path root is an absolute git path that has an empty sequence of names.
+ * In other words, it consists in a root component only. Its string form ends
+ * with <tt>//</tt>.
+ * <p>
+ * Note that the commit referred to (possibly indirectly) by this git path root
+ * may not exist in the associated git file system. This occurs when either:
+ * </p>
+ * <ul>
+ * <li>this path root contains a git ref which does not exist in this
+ * repository;</li>
+ * <li>this path root contains a git ref which refers to a sha that is not a
+ * commit;</li>
+ * <li>this path root contains a sha that is not a commit or does not
+ * exist.</li>
+ * </ul>
+ *
+ * @see GitPathImpl
+ */
 public interface GitPath extends Path {
 
 	/**
@@ -45,7 +64,7 @@ public interface GitPath extends Path {
 	 *
 	 */
 	@Override
-	GitPathRoot getRoot();
+	GitPathRootImpl getRoot();
 
 	@Override
 	int getNameCount();
@@ -227,7 +246,7 @@ public interface GitPath extends Path {
 	 * Returns a URI referring to the git file system instance associated to this
 	 * path, and referring to this specific file in that file system.
 	 *
-	 * @see GitFileSystemProvider#getPath(URI)
+	 * @see GitFileSystemProviderImpl#getPath(URI)
 	 */
 	@Override
 	URI toUri();

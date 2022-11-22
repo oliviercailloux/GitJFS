@@ -11,11 +11,11 @@ import java.nio.file.Path;
  * {@link GitFileSystemImpl#emptyPath} rather than creating a new one.
  */
 class GitEmptyPath extends GitRelativePath {
-	private GitPathRoot absoluteEquivalent;
+	private GitPathRootImpl absoluteEquivalent;
 
-	GitEmptyPath(GitPathRoot absoluteEquivalent) {
+	GitEmptyPath(GitPathRootImpl absoluteEquivalent) {
 		this.absoluteEquivalent = checkNotNull(absoluteEquivalent);
-		checkArgument(absoluteEquivalent.getRoot().toStaticRev().equals(GitPathRoot.DEFAULT_GIT_REF));
+		checkArgument(absoluteEquivalent.getRoot().toStaticRev().equals(GitPathRootImpl.DEFAULT_GIT_REF));
 	}
 
 	/**
@@ -23,7 +23,7 @@ class GitEmptyPath extends GitRelativePath {
 	 * associated to this path.
 	 */
 	@Override
-	public GitPathRoot toAbsolutePath() {
+	public GitPathRootImpl toAbsolutePath() {
 		return absoluteEquivalent;
 	}
 

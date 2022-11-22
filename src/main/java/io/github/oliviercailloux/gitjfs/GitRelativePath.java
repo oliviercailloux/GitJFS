@@ -50,7 +50,7 @@ abstract class GitRelativePath extends GitPathImpl {
 			return fs.emptyPath;
 		}
 
-		final GitPathRoot root = fs.mainSlash;
+		final GitPathRootImpl root = fs.mainSlash;
 		final GitAbsolutePathWithInternal absolute = new GitAbsolutePathWithInternal(root,
 				internalPath.toAbsolutePath());
 		return new GitRelativePathWithInternal(absolute);
@@ -76,7 +76,7 @@ abstract class GitRelativePath extends GitPathImpl {
 	public abstract GitPathImpl toAbsolutePath();
 
 	@Override
-	public GitPathRoot getRoot() {
+	public GitPathRootImpl getRoot() {
 		return null;
 	}
 

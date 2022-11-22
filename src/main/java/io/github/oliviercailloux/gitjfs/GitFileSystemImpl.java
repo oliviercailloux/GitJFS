@@ -62,33 +62,6 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * <p>
- * A git file system. Associated to a git repository. Can be used to obtain
- * {@link GitPathImpl} instances.
- * </p>
- * <p>
- * Must be {@link #close() closed} to release resources associated with readers.
- * </p>
- * <p>
- * Reads links transparently, as documented in <a href=
- * "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/package-summary.html">java.nio.file</a>.
- * Thus, assuming {@code dir} is a symlink to {@code otherdir}, reading
- * {@code dir/file.txt} reads {@code otherdir/file.txt}. This is also how git
- * <a href="https://stackoverflow.com/a/954575">operates</a>: checking out
- * {@code dir} will restore it as a symlink to {@code otherdir}. Use
- * {@link GitFileSystemProvider#readSymbolicLink} to obtain the target of a
- * link. This library will however refuse to follow a link out of the git
- * repository it originates from.
- * <p>
- * Note that a git repository <a href="https://stackoverflow.com/a/3731139">does
- * not use hard links</a>.
- *
- *
- * @see #getAbsolutePath(String, String...)
- * @see #getRelativePath(String...)
- * @see #getGitRootDirectories()
- */
 public abstract class GitFileSystemImpl extends FileSystem implements GitFileSystem {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitFileSystemImpl.class);
@@ -364,8 +337,8 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 	/**
 	 * It is crucial to always use the same instance of Jimfs, because Jimfs refuses
 	 * to resolve paths coming from different instances. And the references to JimFs
-	 * might be better here rather than in {@link GitFileSystemProvider} because
-	 * when {@link GitFileSystemProvider} is initialized, we do not want to refer to
+	 * might be better here rather than in {@link GitFileSystemProviderImpl} because
+	 * when {@link GitFileSystemProviderImpl} is initialized, we do not want to refer to
 	 * JimFs, which might not be initialized yet (perhaps this should not create
 	 * problems, but as it seems logically better to have these references here
 	 * anyway, I did not investigate).
@@ -377,7 +350,7 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 
 	static final Path JIM_FS_SLASH = JIM_FS.getPath("/");
 
-	private final GitFileSystemProvider gitProvider;
+	private final GitFileSystemProviderImpl gitProvider;
 	private boolean isOpen;
 	private final ObjectReader reader;
 	private final Repository repository;
@@ -385,7 +358,7 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 
 	private final Set<DirectoryStream<GitPathImpl>> toClose;
 
-	final GitPathRootRef mainSlash = new GitPathRootRef(this, GitPathRoot.DEFAULT_GIT_REF);
+	final GitPathRootRefImpl mainSlash = new GitPathRootRefImpl(this, GitPathRootImpl.DEFAULT_GIT_REF);
 	final GitEmptyPath emptyPath = new GitEmptyPath(mainSlash);
 
 	/**
@@ -395,7 +368,7 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 	 * and throwing nice user-level exceptions such as {@link NoSuchFileException}
 	 * is left to elsewhere where possible, e.g. GitPathRoot.
 	 */
-	protected GitFileSystemImpl(GitFileSystemProvider gitProvider, Repository repository,
+	protected GitFileSystemImpl(GitFileSystemProviderImpl gitProvider, Repository repository,
 			boolean shouldCloseRepository) {
 		this.gitProvider = checkNotNull(gitProvider);
 		this.repository = checkNotNull(repository);
@@ -406,25 +379,6 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 		this.toClose = new LinkedHashSet<>();
 	}
 
-	/**
-	 * Converts a path string, or a sequence of strings that when joined form a path
-	 * string, to a {@code GitPath}. If {@code first} starts with {@code /} (or if
-	 * {@code first} is empty and the first non-empty string in {@code more} starts
-	 * with {@code /}), this method behaves as if
-	 * {@link #getAbsolutePath(String, String...)} had been called. Otherwise, it
-	 * behaves as if {@link #getRelativePath(String...)} had been called.
-	 * <p>
-	 * No check is performed to ensure that the path refers to an existing git
-	 * object in this git file system.
-	 * </p>
-	 *
-	 * @param first the path string or initial part of the path string
-	 * @param more  additional strings to be joined to form the path string
-	 *
-	 * @return the resulting {@code Path}
-	 *
-	 * @throws InvalidPathException If the path string cannot be converted
-	 */
 	@Override
 	public GitPathImpl getPath(String first, String... more) {
 		final ImmutableList<String> allNames = Stream.concat(Stream.of(first), Stream.of(more))
@@ -439,45 +393,7 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 		return GitRelativePath.relative(this, allNames);
 	}
 
-	/**
-	 * <p>
-	 * Converts an absolute git path string, or a sequence of strings that when
-	 * joined form an absolute git path string, to an absolute {@code GitPath}.
-	 * </p>
-	 * <p>
-	 * If {@code more} does not specify any elements then the value of the
-	 * {@code first} parameter is the path string to convert.
-	 * </p>
-	 * <p>
-	 * If {@code more} specifies one or more elements then each non-empty string,
-	 * including {@code first}, is considered to be a sequence of name elements (see
-	 * {@link Path}) and is joined to form a path string using {@code /} as
-	 * separator. If {@code first} does not end with {@code //} (but ends with
-	 * {@code /}, as required), and if {@code more} does not start with {@code /},
-	 * then a {@code /} is added so that there will be two slashes joining
-	 * {@code first} to {@code more}.
-	 * </p>
-	 * <p>
-	 * For example, if {@code getAbsolutePath("/refs/heads/main/","foo","bar")} is
-	 * invoked, then the path string {@code "/refs/heads/main//foo/bar"} is
-	 * converted to a {@code Path}.
-	 * </p>
-	 * <p>
-	 * No check is performed to ensure that the path refers to an existing git
-	 * object in this git file system.
-	 * </p>
-	 *
-	 * @param first the string form of the root component, possibly followed by
-	 *              other path segments. Must start with <tt>/refs/</tt> or
-	 *              <tt>/heads/</tt> or <tt>/tags/</tt> or be a slash followed by a
-	 *              40-characters long sha-1; must contain at most once {@code //};
-	 *              if does not contain {@code //}, must end with {@code /}.
-	 * @param more  may start with {@code /}.
-	 * @return an absolute git path.
-	 * @throws InvalidPathException if {@code first} does not contain a syntaxically
-	 *                              valid root component
-	 * @see GitPathImpl
-	 */
+	@Override
 	public GitPathImpl getAbsolutePath(String first, String... more) throws InvalidPathException {
 		final String rootStringForm;
 		final ImmutableList<String> internalPath;
@@ -501,93 +417,36 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 		verify(internalPath.isEmpty() || internalPath.get(0).startsWith("/"));
 
 		final GitRev rev = GitRev.stringForm(rootStringForm);
-		final GitPathRoot root = GitPathRoot.given(this, rev);
+		final GitPathRootImpl root = GitPathRootImpl.given(this, rev);
 		return GitAbsolutePath.givenRoot(root, internalPath);
 	}
 
-	/**
-	 * Returns a git path referring to a commit designated by its id. No check is
-	 * performed to ensure that the commit exists.
-	 *
-	 * @param commitId      the commit to refer to
-	 * @param internalPath1 may start with a slash.
-	 * @param internalPath  may start with a slash.
-	 * @return an absolute path
-	 * @see GitPathImpl
-	 */
+	@Override
 	public GitPathImpl getAbsolutePath(ObjectId commitId, String internalPath1, String... internalPath) {
 		final String internalPath1StartsRight = internalPath1.startsWith("/") ? internalPath1 : "/" + internalPath1;
 		final ImmutableList<String> givenMore = Streams
 				.concat(Stream.of(internalPath1StartsRight), Stream.of(internalPath))
 				.collect(ImmutableList.toImmutableList());
-		return GitAbsolutePath.givenRoot(new GitPathRootSha(this, GitRev.commitId(commitId), Optional.empty()),
+		return GitAbsolutePath.givenRoot(new GitPathRootShaImpl(this, GitRev.commitId(commitId), Optional.empty()),
 				givenMore);
 	}
 
-	/**
-	 * Returns an absolute git path. No check is performed to ensure that the ref
-	 * exists, or that the commit this refers to exists.
-	 *
-	 * @param rootStringForm the string form of the root component. Must start with
-	 *                       <tt>/refs/</tt> or <tt>/heads/</tt> or <tt>/tags/</tt>
-	 *                       or be a 40-characters long sha-1 surrounded by slash
-	 *                       characters; must end with <tt>/</tt>; may not contain
-	 *                       <tt>//</tt> nor <tt>\</tt>.
-	 * @return a git path root
-	 * @throws InvalidPathException if {@code rootStringForm} does not contain a
-	 *                              syntaxically valid root component
-	 * @see GitPathRoot
-	 */
-	public GitPathRoot getPathRoot(String rootStringForm) throws InvalidPathException {
-		return GitPathRoot.given(this, GitRev.stringForm(rootStringForm));
+	@Override
+	public GitPathRootImpl getPathRoot(String rootStringForm) throws InvalidPathException {
+		return GitPathRootImpl.given(this, GitRev.stringForm(rootStringForm));
 	}
 
-	public GitPathRootRef getPathRootRef(String rootStringForm) throws InvalidPathException {
-		return new GitPathRootRef(this, GitRev.stringForm(rootStringForm));
+	@Override
+	public GitPathRootRefImpl getPathRootRef(String rootStringForm) throws InvalidPathException {
+		return new GitPathRootRefImpl(this, GitRev.stringForm(rootStringForm));
 	}
 
-	/**
-	 * Returns a git path referring to a commit designated by its id. No check is
-	 * performed to ensure that the commit exists.
-	 *
-	 * @param commitId the commit to refer to
-	 * @return a git path root
-	 * @see GitPathRoot
-	 */
-	public GitPathRootSha getPathRoot(ObjectId commitId) {
-		return new GitPathRootSha(this, GitRev.commitId(commitId), Optional.empty());
+	@Override
+	public GitPathRootShaImpl getPathRoot(ObjectId commitId) {
+		return new GitPathRootShaImpl(this, GitRev.commitId(commitId), Optional.empty());
 	}
 
-	/**
-	 * <p>
-	 * Converts a relative git path string, or a sequence of strings that when
-	 * joined form a relative git path string, to a relative {@code GitPath}.
-	 * </p>
-	 * <p>
-	 * Each non-empty string in {@code names} is considered to be a sequence of name
-	 * elements (see {@link Path}) and is joined to form a path string using
-	 * {@code /} as separator.
-	 * </p>
-	 * <p>
-	 * For example, if {@code getRelativePath("foo","bar")} is invoked, then the
-	 * path string {@code "foo/bar"} is converted to a {@code Path}.
-	 * </p>
-	 * <p>
-	 * An <em>empty</em> path is returned iff names contain only empty strings. It
-	 * then implicitly refers to the main branch of this git file system.
-	 * </p>
-	 * <p>
-	 * No check is performed to ensure that the path refers to an existing git
-	 * object in this git file system.
-	 * </p>
-	 *
-	 * @param names the internal path; its first element (if any) may not start with
-	 *              {@code /}.
-	 * @return a relative git path.
-	 * @throws InvalidPathException if the first non-empty string in {@code names}
-	 *                              start with {@code /}.
-	 * @see GitPathImpl
-	 */
+	@Override
 	public GitPathImpl getRelativePath(String... names) throws InvalidPathException {
 		return GitRelativePath.relative(this, ImmutableList.copyOf(names));
 	}
@@ -597,15 +456,6 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 		throw new UnsupportedOperationException();
 	}
 
-	/**
-	 * Retrieve the set of all commits of this repository. Consider calling rather
-	 * {@code {@link #getCommitsGraph()}.getNodes()}, whose type is more precise.
-	 *
-	 * @return absolute path roots referring to commit ids.
-	 * @throws UncheckedIOException if an I/O error occurs (I have no idea why the
-	 *                              Java Files API does not want an IOException
-	 *                              here)
-	 */
 	@Override
 	public ImmutableSet<Path> getRootDirectories() throws UncheckedIOException {
 		final ImmutableSet<ObjectId> commits = getCommits();
@@ -613,37 +463,20 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 		return paths;
 	}
 
-	/**
-	 * Retrieve the set of all commits of this repository reachable from some ref.
-	 * This is equivalent to calling {@link #getRootDirectories()}, but with a more
-	 * precise type.
-	 *
-	 * @return absolute path roots, all referring to commit ids (no ref).
-	 * @throws UncheckedIOException if an I/O error occurs (using an Unchecked
-	 *                              variant to mimic the behavior of
-	 *                              {@link #getRootDirectories()})
-	 */
-	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws UncheckedIOException {
+	@Override
+	public ImmutableGraph<GitPathRootShaImpl> getCommitsGraph() throws UncheckedIOException {
 		final ImmutableSet<ObjectId> commits = getCommits();
-		final ImmutableSet<GitPathRootSha> paths = commits.stream().map(this::getPathRoot)
+		final ImmutableSet<GitPathRootShaImpl> paths = commits.stream().map(this::getPathRoot)
 				.collect(ImmutableSet.toImmutableSet());
 
-		final Function<GitPathRootSha, List<GitPathRootSha>> getParents = IO_UNCHECKER
+		final Function<GitPathRootShaImpl, List<GitPathRootShaImpl>> getParents = IO_UNCHECKER
 				.wrapFunction(p -> p.getParentCommits());
 
 		return ImmutableGraph.copyOf(GraphUtils.asGraph(paths, p -> ImmutableList.of(), getParents::apply));
 	}
 
-	/**
-	 * Returns a set containing one git path root for each git ref (of the form
-	 * <tt>/refs/…</tt>) contained in this git file system. This does not consider
-	 * HEAD or other special references, but considers both branches and tags.
-	 *
-	 * @return git path roots referencing git refs (not commit ids).
-	 *
-	 * @throws IOException if an I/O error occurs
-	 */
-	public ImmutableSet<GitPathRootRef> getRefs() throws IOException {
+	@Override
+	public ImmutableSet<GitPathRootRefImpl> getRefs() throws IOException {
 		if (!isOpen) {
 			throw new ClosedFileSystemException();
 		}
@@ -739,7 +572,7 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 	}
 
 	@Override
-	public GitFileSystemProvider provider() {
+	public GitFileSystemProviderImpl provider() {
 		return gitProvider;
 	}
 
@@ -943,20 +776,7 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 		return target;
 	}
 
-	/**
-	 * <p>
-	 * Returns a gitjfs URI that identifies this git file system, and this specific
-	 * git file system instance while it is open.
-	 * </p>
-	 * <p>
-	 * While this instance is open, giving the returned URI to
-	 * {@link GitFileSystemProvider#getFileSystem(URI)} will return this file system
-	 * instance; giving it to {@link GitFileSystemProvider#getPath(URI)} will return
-	 * the default path associated to this file system.
-	 * </p>
-	 *
-	 * @return the URI that identifies this file system.
-	 */
+	@Override
 	public URI toUri() {
 		return gitProvider.getGitFileSystems().toUri(this);
 	}
@@ -991,7 +811,7 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 	@Override
 	public void close() {
 		isOpen = false;
-	
+
 		List<RuntimeException> closeExceptions = new ArrayList<>();
 		try {
 			reader.close();

@@ -12,7 +12,7 @@ class GitRelativePathWithInternal extends GitRelativePath {
 
 	GitRelativePathWithInternal(GitAbsolutePathWithInternal absoluteEquivalent) {
 		this.absoluteEquivalent = checkNotNull(absoluteEquivalent);
-		checkArgument(absoluteEquivalent.getRoot().toStaticRev().equals(GitPathRoot.DEFAULT_GIT_REF));
+		checkArgument(absoluteEquivalent.getRoot().toStaticRev().equals(GitPathRootImpl.DEFAULT_GIT_REF));
 		final Path relative = absoluteEquivalent.getInternalPath().relativize(GitFileSystemImpl.JIM_FS_SLASH);
 		checkArgument(relative.getRoot() == null);
 		checkArgument(relative.getNameCount() >= 1);

@@ -13,18 +13,18 @@ import org.slf4j.LoggerFactory;
  * A git file system that obtains its commit data by reading from a git
  * directory.
  *
- * @see GitFileSystemProvider#newFileSystemFromGitDir(Path)
- * @see GitFileSystemProvider#newFileSystemFromFileRepository(FileRepository)
+ * @see GitFileSystemProviderImpl#newFileSystemFromGitDir(Path)
+ * @see GitFileSystemProviderImpl#newFileSystemFromFileRepository(FileRepository)
  */
 public class GitFileFileSystem extends GitFileSystemImpl {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitFileFileSystem.class);
 
-	static GitFileFileSystem givenUserRepository(GitFileSystemProvider provider, FileRepository repository) {
+	static GitFileFileSystem givenUserRepository(GitFileSystemProviderImpl provider, FileRepository repository) {
 		return new GitFileFileSystem(provider, repository, false);
 	}
 
-	static GitFileFileSystem givenOurRepository(GitFileSystemProvider provider, FileRepository repository) {
+	static GitFileFileSystem givenOurRepository(GitFileSystemProviderImpl provider, FileRepository repository) {
 		return new GitFileFileSystem(provider, repository, true);
 	}
 
@@ -33,7 +33,7 @@ public class GitFileFileSystem extends GitFileSystemImpl {
 	 */
 	private final FileRepository repository;
 
-	private GitFileFileSystem(GitFileSystemProvider gitProvider, FileRepository repository,
+	private GitFileFileSystem(GitFileSystemProviderImpl gitProvider, FileRepository repository,
 			boolean shouldCloseRepository) {
 		super(gitProvider, repository, shouldCloseRepository);
 		LOGGER.debug("Creating file system given {}, {}, {}.", gitProvider, repository, shouldCloseRepository);
@@ -65,10 +65,10 @@ public class GitFileFileSystem extends GitFileSystemImpl {
 	 * </p>
 	 * <p>
 	 * While this file system is open, the returned URI can be given to
-	 * {@link GitFileSystemProvider#getFileSystem(URI)} to obtain this file system
-	 * instance back; or to {@link GitFileSystemProvider#getPath(URI)} to obtain the
+	 * {@link GitFileSystemProviderImpl#getFileSystem(URI)} to obtain this file system
+	 * instance back; or to {@link GitFileSystemProviderImpl#getPath(URI)} to obtain the
 	 * default path associated to this file system. It can also be given to
-	 * {@link GitFileSystemProvider#newFileSystem(URI)} to obtain a new file system
+	 * {@link GitFileSystemProviderImpl#newFileSystem(URI)} to obtain a new file system
 	 * that obtains its data by reading from the same git directory, in a new VM
 	 * instance or after this one has been closed. (This identifier should not
 	 * however be considered stable accross releases of this library. Please open an

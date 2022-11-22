@@ -1,6 +1,10 @@
 package io.github.oliviercailloux.gitjfs;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.graph.ImmutableGraph;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.file.ClosedFileSystemException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileStore;
@@ -15,195 +19,48 @@ import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.Set;
+import org.eclipse.jgit.lib.ObjectId;
 
+/**
+ * <p>
+ * A git file system. Associated to a git repository. Can be used to obtain
+ * {@link GitPathImpl} instances.
+ * </p>
+ * <p>
+ * Must be {@link #close() closed} to release resources associated with readers.
+ * </p>
+ * <p>
+ * Reads links transparently, as documented in <a href=
+ * "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/package-summary.html">java.nio.file</a>.
+ * Thus, assuming {@code dir} is a symlink to {@code otherdir}, reading
+ * {@code dir/file.txt} reads {@code otherdir/file.txt}. This is also how git
+ * <a href="https://stackoverflow.com/a/954575">operates</a>: checking out
+ * {@code dir} will restore it as a symlink to {@code otherdir}. Use
+ * {@link GitFileSystemProviderImpl#readSymbolicLink} to obtain the target of a
+ * link. This library will however refuse to follow a link out of the git
+ * repository it originates from.
+ * <p>
+ * Note that a git repository <a href="https://stackoverflow.com/a/3731139">does
+ * not use hard links</a>.
+ *
+ *
+ * @see #getAbsolutePath(String, String...)
+ * @see #getRelativePath(String...)
+ * @see #getGitRootDirectories()
+ */
 public interface GitFileSystem extends AutoCloseable {
 
 	/**
-	 * Closes this file system.
-	 *
-	 * <p>
-	 * After a file system is closed then all subsequent access to the file system,
-	 * either by methods defined by this class or on objects associated with this
-	 * file system, throw {@link ClosedFileSystemException}. If the file system is
-	 * already closed then invoking this method has no effect.
-	 *
-	 * <p>
-	 * Closing a file system will close all open {@link java.nio.channels.Channel
-	 * channels}, {@link DirectoryStream directory-streams}, {@link WatchService
-	 * watch-service}, and other closeable objects associated with this file system.
-	 * The {@link FileSystems#getDefault default} file system cannot be closed.
-	 *
-	 * @throws IOException                   If an I/O error occurs
-	 * @throws UnsupportedOperationException Thrown in the case of the default file
-	 *                                       system
-	 */
-	@Override
-	void close() throws IOException;
-
-	/**
-	 * Returns the provider that created this file system.
-	 *
-	 * @return The provider that created this file system.
-	 */
-	GitFileSystemProvider provider();
-
-	/**
-	 * Tells whether or not this file system is open.
-	 *
-	 * <p>
-	 * File systems created by the default provider are always open.
-	 *
-	 * @return {@code true} if, and only if, this file system is open
-	 */
-	boolean isOpen();
-
-	/**
-	 * Tells whether or not this file system allows only read-only access to its
-	 * file stores.
-	 *
-	 * @return {@code true} if, and only if, this file system provides read-only
-	 *         access
-	 */
-	boolean isReadOnly();
-
-	/**
-	 * Returns the name separator, represented as a string.
-	 *
-	 * <p>
-	 * The name separator is used to separate names in a path string. An
-	 * implementation may support multiple name separators in which case this method
-	 * returns an implementation specific <em>default</em> name separator. This
-	 * separator is used when creating path strings by invoking the
-	 * {@link Path#toString() toString()} method.
-	 *
-	 * <p>
-	 * In the case of the default provider, this method returns the same separator
-	 * as {@link java.io.File#separator}.
-	 *
-	 * @return The name separator
-	 */
-	String getSeparator();
-
-	/**
-	 * Returns an object to iterate over the paths of the root directories.
-	 *
-	 * <p>
-	 * A file system provides access to a file store that may be composed of a
-	 * number of distinct file hierarchies, each with its own top-level root
-	 * directory. Unless denied by the security manager, each element in the
-	 * returned iterator corresponds to the root directory of a distinct file
-	 * hierarchy. The order of the elements is not defined. The file hierarchies may
-	 * change during the lifetime of the Java virtual machine. For example, in some
-	 * implementations, the insertion of removable media may result in the creation
-	 * of a new file hierarchy with its own top-level directory.
-	 *
-	 * <p>
-	 * When a security manager is installed, it is invoked to check access to the
-	 * each root directory. If denied, the root directory is not returned by the
-	 * iterator. In the case of the default provider, the
-	 * {@link SecurityManager#checkRead(String)} method is invoked to check read
-	 * access to each root directory. It is system dependent if the permission
-	 * checks are done when the iterator is obtained or during iteration.
-	 *
-	 * @return An object to iterate over the root directories
-	 */
-	Iterable<Path> getRootDirectories();
-
-	/**
-	 * Returns an object to iterate over the underlying file stores.
-	 *
-	 * <p>
-	 * The elements of the returned iterator are the {@link FileStore FileStores}
-	 * for this file system. The order of the elements is not defined and the file
-	 * stores may change during the lifetime of the Java virtual machine. When an
-	 * I/O error occurs, perhaps because a file store is not accessible, then it is
-	 * not returned by the iterator.
-	 *
-	 * <p>
-	 * In the case of the default provider, and a security manager is installed, the
-	 * security manager is invoked to check
-	 * {@link RuntimePermission}{@code ("getFileStoreAttributes")}. If denied, then
-	 * no file stores are returned by the iterator. In addition, the security
-	 * manager's {@link SecurityManager#checkRead(String)} method is invoked to
-	 * check read access to the file store's <em>top-most</em> directory. If denied,
-	 * the file store is not returned by the iterator. It is system dependent if the
-	 * permission checks are done when the iterator is obtained or during iteration.
-	 *
-	 * <p>
-	 * <b>Usage Example:</b> Suppose we want to print the space usage for all file
-	 * stores:
-	 *
-	 * <pre>
-	 * for (FileStore store : FileSystems.getDefault().getFileStores()) {
-	 * 	long total = store.getTotalSpace() / 1024;
-	 * 	long used = (store.getTotalSpace() - store.getUnallocatedSpace()) / 1024;
-	 * 	long avail = store.getUsableSpace() / 1024;
-	 * 	System.out.format("%-20s %12d %12d %12d%n", store, total, used, avail);
-	 * }
-	 * </pre>
-	 *
-	 * @return An object to iterate over the backing file stores
-	 */
-	Iterable<FileStore> getFileStores();
-
-	/**
-	 * Returns the set of the {@link FileAttributeView#name names} of the file
-	 * attribute views supported by this {@code FileSystem}.
-	 *
-	 * <p>
-	 * The {@link BasicFileAttributeView} is required to be supported and therefore
-	 * the set contains at least one element, "basic".
-	 *
-	 * <p>
-	 * The {@link FileStore#supportsFileAttributeView(String)
-	 * supportsFileAttributeView(String)} method may be used to test if an
-	 * underlying {@link FileStore} supports the file attributes identified by a
-	 * file attribute view.
-	 *
-	 * @return An unmodifiable set of the names of the supported file attribute
-	 *         views
-	 */
-	Set<String> supportedFileAttributeViews();
-
-	/**
 	 * Converts a path string, or a sequence of strings that when joined form a path
-	 * string, to a {@code Path}. If {@code more} does not specify any elements then
-	 * the value of the {@code first} parameter is the path string to convert. If
-	 * {@code more} specifies one or more elements then each non-empty string,
-	 * including {@code first}, is considered to be a sequence of name elements (see
-	 * {@link Path}) and is joined to form a path string. The details as to how the
-	 * Strings are joined is provider specific but typically they will be joined
-	 * using the {@link #getSeparator name-separator} as the separator. For example,
-	 * if the name separator is "{@code /}" and {@code getPath("/foo","bar","gus")}
-	 * is invoked, then the path string {@code "/foo/bar/gus"} is converted to a
-	 * {@code Path}. A {@code Path} representing an empty path is returned if
-	 * {@code first} is the empty string and {@code more} does not contain any
-	 * non-empty strings.
-	 *
+	 * string, to a {@code GitPath}. If {@code first} starts with {@code /} (or if
+	 * {@code first} is empty and the first non-empty string in {@code more} starts
+	 * with {@code /}), this method behaves as if
+	 * {@link #getAbsolutePath(String, String...)} had been called. Otherwise, it
+	 * behaves as if {@link #getRelativePath(String...)} had been called.
 	 * <p>
-	 * The parsing and conversion to a path object is inherently implementation
-	 * dependent. In the simplest case, the path string is rejected, and
-	 * {@link InvalidPathException} thrown, if the path string contains characters
-	 * that cannot be converted to characters that are <em>legal</em> to the file
-	 * store. For example, on UNIX systems, the NUL (&#92;u0000) character is not
-	 * allowed to be present in a path. An implementation may choose to reject path
-	 * strings that contain names that are longer than those allowed by any file
-	 * store, and where an implementation supports a complex path syntax, it may
-	 * choose to reject path strings that are <em>badly formed</em>.
-	 *
-	 * <p>
-	 * In the case of the default provider, path strings are parsed based on the
-	 * definition of paths at the platform or virtual file system level. For
-	 * example, an operating system may not allow specific characters to be present
-	 * in a file name, but a specific underlying file store may impose different or
-	 * additional restrictions on the set of legal characters.
-	 *
-	 * <p>
-	 * This method throws {@link InvalidPathException} when the path string cannot
-	 * be converted to a path. Where possible, and where applicable, the exception
-	 * is created with an {@link InvalidPathException#getIndex index} value
-	 * indicating the first position in the {@code path} parameter that caused the
-	 * path string to be rejected.
+	 * No check is performed to ensure that the path refers to an existing git
+	 * object in this git file system.
+	 * </p>
 	 *
 	 * @param first the path string or initial part of the path string
 	 * @param more  additional strings to be joined to form the path string
@@ -213,6 +70,158 @@ public interface GitFileSystem extends AutoCloseable {
 	 * @throws InvalidPathException If the path string cannot be converted
 	 */
 	Path getPath(String first, String... more);
+
+	/**
+	 * <p>
+	 * Converts an absolute git path string, or a sequence of strings that when
+	 * joined form an absolute git path string, to an absolute {@code GitPath}.
+	 * </p>
+	 * <p>
+	 * If {@code more} does not specify any elements then the value of the
+	 * {@code first} parameter is the path string to convert.
+	 * </p>
+	 * <p>
+	 * If {@code more} specifies one or more elements then each non-empty string,
+	 * including {@code first}, is considered to be a sequence of name elements (see
+	 * {@link Path}) and is joined to form a path string using {@code /} as
+	 * separator. If {@code first} does not end with {@code //} (but ends with
+	 * {@code /}, as required), and if {@code more} does not start with {@code /},
+	 * then a {@code /} is added so that there will be two slashes joining
+	 * {@code first} to {@code more}.
+	 * </p>
+	 * <p>
+	 * For example, if {@code getAbsolutePath("/refs/heads/main/","foo","bar")} is
+	 * invoked, then the path string {@code "/refs/heads/main//foo/bar"} is
+	 * converted to a {@code Path}.
+	 * </p>
+	 * <p>
+	 * No check is performed to ensure that the path refers to an existing git
+	 * object in this git file system.
+	 * </p>
+	 *
+	 * @param first the string form of the root component, possibly followed by
+	 *              other path segments. Must start with <tt>/refs/</tt> or
+	 *              <tt>/heads/</tt> or <tt>/tags/</tt> or be a slash followed by a
+	 *              40-characters long sha-1; must contain at most once {@code //};
+	 *              if does not contain {@code //}, must end with {@code /}.
+	 * @param more  may start with {@code /}.
+	 * @return an absolute git path.
+	 * @throws InvalidPathException if {@code first} does not contain a syntaxically
+	 *                              valid root component
+	 * @see GitPathImpl
+	 */
+	GitPathImpl getAbsolutePath(String first, String... more) throws InvalidPathException;
+
+	/**
+	 * Returns a git path referring to a commit designated by its id. No check is
+	 * performed to ensure that the commit exists.
+	 *
+	 * @param commitId      the commit to refer to
+	 * @param internalPath1 may start with a slash.
+	 * @param internalPath  may start with a slash.
+	 * @return an absolute path
+	 * @see GitPathImpl
+	 */
+	GitPathImpl getAbsolutePath(ObjectId commitId, String internalPath1, String... internalPath);
+
+	/**
+	 * Returns a git path referring to a commit designated by its id. No check is
+	 * performed to ensure that the commit exists.
+	 *
+	 * @param commitId the commit to refer to
+	 * @return a git path root
+	 * @see GitPathRootImpl
+	 */
+	GitPathRootShaImpl getPathRoot(ObjectId commitId);
+
+	GitPathRootRefImpl getPathRootRef(String rootStringForm) throws InvalidPathException;
+
+	/**
+	 * Returns an absolute git path. No check is performed to ensure that the ref
+	 * exists, or that the commit this refers to exists.
+	 *
+	 * @param rootStringForm the string form of the root component. Must start with
+	 *                       <tt>/refs/</tt> or <tt>/heads/</tt> or <tt>/tags/</tt>
+	 *                       or be a 40-characters long sha-1 surrounded by slash
+	 *                       characters; must end with <tt>/</tt>; may not contain
+	 *                       <tt>//</tt> nor <tt>\</tt>.
+	 * @return a git path root
+	 * @throws InvalidPathException if {@code rootStringForm} does not contain a
+	 *                              syntaxically valid root component
+	 * @see GitPathRootImpl
+	 */
+	GitPathRootImpl getPathRoot(String rootStringForm) throws InvalidPathException;
+
+	/**
+	 * <p>
+	 * Converts a relative git path string, or a sequence of strings that when
+	 * joined form a relative git path string, to a relative {@code GitPath}.
+	 * </p>
+	 * <p>
+	 * Each non-empty string in {@code names} is considered to be a sequence of name
+	 * elements (see {@link Path}) and is joined to form a path string using
+	 * {@code /} as separator.
+	 * </p>
+	 * <p>
+	 * For example, if {@code getRelativePath("foo","bar")} is invoked, then the
+	 * path string {@code "foo/bar"} is converted to a {@code Path}.
+	 * </p>
+	 * <p>
+	 * An <em>empty</em> path is returned iff names contain only empty strings. It
+	 * then implicitly refers to the main branch of this git file system.
+	 * </p>
+	 * <p>
+	 * No check is performed to ensure that the path refers to an existing git
+	 * object in this git file system.
+	 * </p>
+	 *
+	 * @param names the internal path; its first element (if any) may not start with
+	 *              {@code /}.
+	 * @return a relative git path.
+	 * @throws InvalidPathException if the first non-empty string in {@code names}
+	 *                              start with {@code /}.
+	 * @see GitPathImpl
+	 */
+	GitPathImpl getRelativePath(String... names) throws InvalidPathException;
+
+	/**
+	 * TODO
+	 */
+	Iterable<FileStore> getFileStores();
+
+	/**
+	 * Retrieve the set of all commits of this repository. Consider calling rather
+	 * {@code {@link #getCommitsGraph()}.getNodes()}, whose type is more precise.
+	 *
+	 * @return absolute path roots referring to commit ids.
+	 * @throws UncheckedIOException if an I/O error occurs (I have no idea why the
+	 *                              Java Files API does not want an IOException
+	 *                              here)
+	 */
+	Iterable<Path> getRootDirectories();
+
+	/**
+	 * Retrieve the set of all commits of this repository reachable from some ref.
+	 * This is equivalent to calling {@link #getRootDirectories()}, but with a more
+	 * precise type.
+	 *
+	 * @return absolute path roots, all referring to commit ids (no ref).
+	 * @throws UncheckedIOException if an I/O error occurs (using an Unchecked
+	 *                              variant to mimic the behavior of
+	 *                              {@link #getRootDirectories()})
+	 */
+	ImmutableGraph<GitPathRootShaImpl> getCommitsGraph() throws UncheckedIOException;
+
+	/**
+	 * Returns a set containing one git path root for each git ref (of the form
+	 * <tt>/refs/…</tt>) contained in this git file system. This does not consider
+	 * HEAD or other special references, but considers both branches and tags.
+	 *
+	 * @return git path roots referencing git refs (not commit ids).
+	 *
+	 * @throws IOException if an I/O error occurs
+	 */
+	ImmutableSet<GitPathRootRefImpl> getRefs() throws IOException;
 
 	/**
 	 * Returns a {@code PathMatcher} that performs match operations on the
@@ -393,6 +402,24 @@ public interface GitFileSystem extends AutoCloseable {
 	PathMatcher getPathMatcher(String syntaxAndPattern);
 
 	/**
+	 * Returns the name separator, represented as a string.
+	 *
+	 * <p>
+	 * The name separator is used to separate names in a path string. An
+	 * implementation may support multiple name separators in which case this method
+	 * returns an implementation specific <em>default</em> name separator. This
+	 * separator is used when creating path strings by invoking the
+	 * {@link Path#toString() toString()} method.
+	 *
+	 * <p>
+	 * In the case of the default provider, this method returns the same separator
+	 * as {@link java.io.File#separator}.
+	 *
+	 * @return The name separator
+	 */
+	String getSeparator();
+
+	/**
 	 * Returns the {@code UserPrincipalLookupService} for this file system
 	 * <i>(optional operation)</i>. The resulting lookup service may be used to
 	 * lookup user or group names.
@@ -413,6 +440,25 @@ public interface GitFileSystem extends AutoCloseable {
 	UserPrincipalLookupService getUserPrincipalLookupService();
 
 	/**
+	 * Tells whether or not this file system is open.
+	 *
+	 * <p>
+	 * File systems created by the default provider are always open.
+	 *
+	 * @return {@code true} if, and only if, this file system is open
+	 */
+	boolean isOpen();
+
+	/**
+	 * Tells whether or not this file system allows only read-only access to its
+	 * file stores.
+	 *
+	 * @return {@code true} if, and only if, this file system provides read-only
+	 *         access
+	 */
+	boolean isReadOnly();
+
+	/**
 	 * Constructs a new {@link WatchService} <i>(optional operation)</i>.
 	 *
 	 * <p>
@@ -429,4 +475,68 @@ public interface GitFileSystem extends AutoCloseable {
 	 * @throws IOException                   If an I/O error occurs
 	 */
 	WatchService newWatchService() throws IOException;
+
+	/**
+	 * Returns the provider that created this file system.
+	 *
+	 * @return The provider that created this file system.
+	 */
+	GitFileSystemProviderImpl provider();
+
+	/**
+	 * Returns the set of the {@link FileAttributeView#name names} of the file
+	 * attribute views supported by this {@code FileSystem}.
+	 *
+	 * <p>
+	 * The {@link BasicFileAttributeView} is required to be supported and therefore
+	 * the set contains at least one element, "basic".
+	 *
+	 * <p>
+	 * The {@link FileStore#supportsFileAttributeView(String)
+	 * supportsFileAttributeView(String)} method may be used to test if an
+	 * underlying {@link FileStore} supports the file attributes identified by a
+	 * file attribute view.
+	 *
+	 * @return An unmodifiable set of the names of the supported file attribute
+	 *         views
+	 */
+	Set<String> supportedFileAttributeViews();
+
+	/**
+	 * Closes this file system.
+	 *
+	 * <p>
+	 * After a file system is closed then all subsequent access to the file system,
+	 * either by methods defined by this class or on objects associated with this
+	 * file system, throw {@link ClosedFileSystemException}. If the file system is
+	 * already closed then invoking this method has no effect.
+	 *
+	 * <p>
+	 * Closing a file system will close all open {@link java.nio.channels.Channel
+	 * channels}, {@link DirectoryStream directory-streams}, {@link WatchService
+	 * watch-service}, and other closeable objects associated with this file system.
+	 * The {@link FileSystems#getDefault default} file system cannot be closed.
+	 *
+	 * @throws IOException                   If an I/O error occurs
+	 * @throws UnsupportedOperationException Thrown in the case of the default file
+	 *                                       system
+	 */
+	@Override
+	void close() throws IOException;
+
+	/**
+	 * <p>
+	 * Returns a gitjfs URI that identifies this git file system, and this specific
+	 * git file system instance while it is open.
+	 * </p>
+	 * <p>
+	 * While this instance is open, giving the returned URI to
+	 * {@link GitFileSystemProviderImpl#getFileSystem(URI)} will return this file system
+	 * instance; giving it to {@link GitFileSystemProviderImpl#getPath(URI)} will return
+	 * the default path associated to this file system.
+	 * </p>
+	 *
+	 * @return the URI that identifies this file system.
+	 */
+	URI toUri();
 }

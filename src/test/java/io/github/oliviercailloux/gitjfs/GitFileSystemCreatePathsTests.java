@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.oliviercailloux.gitjfs.GitFileFileSystem;
 import io.github.oliviercailloux.gitjfs.GitFileSystemImpl;
-import io.github.oliviercailloux.gitjfs.GitFileSystemProvider;
+import io.github.oliviercailloux.gitjfs.GitFileSystemProviderImpl;
 import io.github.oliviercailloux.gitjfs.GitFileSystems;
 import java.io.File;
 import java.nio.file.InvalidPathException;
@@ -30,9 +30,9 @@ public class GitFileSystemCreatePathsTests {
 	static final GitFileFileSystem GIT_FILE_FILE_SYSTEM_MOCKED = GitFileFileSystem.givenOurRepository(mockProvider(),
 			mockFileRepository());
 
-	private static GitFileSystemProvider mockProvider() {
+	private static GitFileSystemProviderImpl mockProvider() {
 		LOGGER.info("Mocking provider.");
-		final GitFileSystemProvider mocked = Mockito.mock(GitFileSystemProvider.class);
+		final GitFileSystemProviderImpl mocked = Mockito.mock(GitFileSystemProviderImpl.class);
 		Mockito.when(mocked.getGitFileSystems()).thenReturn(Mockito.mock(GitFileSystems.class));
 		LOGGER.info("Mocked provider.");
 		return mocked;
