@@ -7,10 +7,10 @@ import static io.github.oliviercailloux.jaris.exceptions.Unchecker.URI_UNCHECKER
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.PeekingIterator;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.FollowLinksBehavior;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.GitObject;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.GitStringObject;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.TreeWalkDirectoryStream;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.FollowLinksBehavior;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.GitObject;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.GitStringObject;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.TreeWalkDirectoryStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.DirectoryIteratorException;
@@ -275,7 +275,7 @@ public abstract class GitPathImpl implements Path, GitPath {
 		}
 	}
 
-	static GitPathImpl fromQueryString(GitFileSystem fs, Map<String, String> splitQuery) {
+	static GitPathImpl fromQueryString(GitFileSystemImpl fs, Map<String, String> splitQuery) {
 		final Optional<String> rootValue = Optional.ofNullable(splitQuery.get(QUERY_PARAMETER_ROOT));
 		final Optional<String> internalPathValue = Optional.ofNullable(splitQuery.get(QUERY_PARAMETER_INTERNAL_PATH));
 
@@ -283,12 +283,12 @@ public abstract class GitPathImpl implements Path, GitPath {
 			final String rootString = rootValue.get();
 			checkArgument(internalPathValue.isPresent());
 			final String internalPathString = internalPathValue.get();
-			final Path internalPath = GitFileSystem.JIM_FS_EMPTY.resolve(internalPathString);
+			final Path internalPath = GitFileSystemImpl.JIM_FS_EMPTY.resolve(internalPathString);
 			checkArgument(internalPath.isAbsolute());
 			return GitAbsolutePath.givenRoot(GitPathRoot.given(fs, GitRev.stringForm(rootString)), internalPath);
 		}
 
-		final Path internalPath = GitFileSystem.JIM_FS_EMPTY.resolve(internalPathValue.orElse(""));
+		final Path internalPath = GitFileSystemImpl.JIM_FS_EMPTY.resolve(internalPathValue.orElse(""));
 		return GitRelativePath.relative(fs, internalPath);
 	}
 
@@ -339,7 +339,7 @@ public abstract class GitPathImpl implements Path, GitPath {
 
 	@Override
 	@SuppressWarnings("resource")
-	public abstract GitFileSystem getFileSystem();
+	public abstract GitFileSystemImpl getFileSystem();
 
 	/**
 	 * Returns {@code true} iff this path has a root component.

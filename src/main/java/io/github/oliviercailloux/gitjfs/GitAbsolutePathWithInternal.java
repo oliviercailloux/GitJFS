@@ -7,9 +7,9 @@ import static com.google.common.base.Verify.verify;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.Streams;
 import com.google.common.jimfs.Jimfs;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.FollowLinksBehavior;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.GitObject;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.NoContextNoSuchFileException;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.FollowLinksBehavior;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.GitObject;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.NoContextNoSuchFileException;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
@@ -91,7 +91,7 @@ class GitAbsolutePathWithInternal extends GitAbsolutePath {
 	}
 
 	@Override
-	public GitFileSystem getFileSystem() {
+	public GitFileSystemImpl getFileSystem() {
 		return root.getFileSystem();
 	}
 
@@ -105,7 +105,7 @@ class GitAbsolutePathWithInternal extends GitAbsolutePath {
 		if (root.toStaticRev().equals(GitPathRoot.DEFAULT_GIT_REF)) {
 			return new GitRelativePathWithInternal(this);
 		}
-		final GitFileSystem fileSystem = getFileSystem();
+		final GitFileSystemImpl fileSystem = getFileSystem();
 		return new GitRelativePathWithInternal(
 				new GitAbsolutePathWithInternal(fileSystem.mainSlash, getInternalPath()));
 	}
@@ -150,7 +150,7 @@ class GitAbsolutePathWithInternal extends GitAbsolutePath {
 	private GitObject doGetGitObject(GitPathRootSha rootSha, FollowLinksBehavior behavior)
 			throws IOException, NoSuchFileException, PathCouldNotBeFoundException {
 		LOGGER.debug("Getting git object of {} with behavior {}.", toString(), behavior);
-		final Path relative = GitFileSystem.JIM_FS_SLASH.relativize(getInternalPath());
+		final Path relative = GitFileSystemImpl.JIM_FS_SLASH.relativize(getInternalPath());
 		final RevTree tree = getRoot().getRevTree();
 
 		LOGGER.debug("Searching for {} in {}.", relative, tree);

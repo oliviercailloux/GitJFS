@@ -17,7 +17,7 @@ public class GitPathRootSha extends GitPathRoot {
 
 	protected Optional<RevCommit> revCommit;
 
-	protected GitPathRootSha(GitFileSystem fileSystem, GitRev gitRev, Optional<RevCommit> commit) {
+	protected GitPathRootSha(GitFileSystemImpl fileSystem, GitRev gitRev, Optional<RevCommit> commit) {
 		super(fileSystem, gitRev);
 		checkArgument(gitRev.isCommitId());
 		revCommit = commit.isPresent() ? commit : null;

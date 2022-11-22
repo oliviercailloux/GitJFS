@@ -85,9 +85,9 @@ class GitFileSystemCreationAndUriTests {
 			final GitFileFileSystem obtained = GitFileSystemProvider.getInstance().getFileSystemFromGitDir(dir);
 			assertEquals(gitFs, obtained);
 			final URI expectedUri = UriBuilder.fromUri("gitjfs://FILE").path(dir + "/").build();
-			assertEquals(expectedUri, ((GitFileSystem) gitFs).toUri());
+			assertEquals(expectedUri, ((GitFileSystemImpl) gitFs).toUri());
 			@SuppressWarnings("resource")
-			final GitFileSystem obtained2 = GitFileSystemProvider.getInstance().getFileSystem(expectedUri);
+			final GitFileSystemImpl obtained2 = GitFileSystemProvider.getInstance().getFileSystem(expectedUri);
 			assertEquals(gitFs, obtained2);
 		}
 		assertThrows(FileSystemNotFoundException.class,
@@ -102,9 +102,9 @@ class GitFileSystemCreationAndUriTests {
 			@SuppressWarnings("resource")
 			final GitFileFileSystem obtained = GitFileSystemProvider.getInstance().getFileSystemFromGitDir(dir);
 			assertEquals(gitFs, obtained);
-			assertEquals(uri, ((GitFileSystem) gitFs).toUri());
+			assertEquals(uri, ((GitFileSystemImpl) gitFs).toUri());
 			@SuppressWarnings("resource")
-			final GitFileSystem obtained2 = GitFileSystemProvider.getInstance().getFileSystem(uri);
+			final GitFileSystemImpl obtained2 = GitFileSystemProvider.getInstance().getFileSystem(uri);
 			assertEquals(gitFs, obtained2);
 		}
 		assertThrows(FileSystemNotFoundException.class,
@@ -123,9 +123,9 @@ class GitFileSystemCreationAndUriTests {
 						.getFileSystemFromRepositoryName(name);
 				assertEquals(gitFs, obtained);
 				final URI expectedUri = URI.create("gitjfs://DFS/my/repo,@+%20space");
-				assertEquals(expectedUri, ((GitFileSystem) gitFs).toUri());
+				assertEquals(expectedUri, ((GitFileSystemImpl) gitFs).toUri());
 				@SuppressWarnings("resource")
-				final GitFileSystem obtained2 = GitFileSystemProvider.getInstance().getFileSystem(expectedUri);
+				final GitFileSystemImpl obtained2 = GitFileSystemProvider.getInstance().getFileSystem(expectedUri);
 				assertEquals(gitFs, obtained2);
 			}
 			assertThrows(FileSystemNotFoundException.class,

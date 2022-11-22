@@ -10,11 +10,11 @@ import org.eclipse.jgit.internal.storage.dfs.DfsRepository;
  *
  * @see GitFileSystemProvider#newFileSystemFromDfsRepository(DfsRepository)
  */
-public class GitDfsFileSystem extends GitFileSystem {
+public class GitDfsFileSystem extends GitFileSystemImpl {
 
 	/**
-	 * This is the same reference as the one in {@link GitFileSystem}. I want to
-	 * keep the latter private to make it clear that only {@link GitFileSystem} is
+	 * This is the same reference as the one in {@link GitFileSystemImpl}. I want to
+	 * keep the latter private to make it clear that only {@link GitFileSystemImpl} is
 	 * responsible for low-level read operations from the repository.
 	 */
 	private final DfsRepository repository;

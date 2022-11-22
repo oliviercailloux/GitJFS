@@ -13,7 +13,7 @@ public class GitPathRootShaCached extends GitPathRootSha {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitPathRootShaCached.class);
 
-	protected GitPathRootShaCached(GitFileSystem fileSystem, GitRev gitRev, RevCommit commit) {
+	protected GitPathRootShaCached(GitFileSystemImpl fileSystem, GitRev gitRev, RevCommit commit) {
 		super(fileSystem, gitRev, Optional.of(commit));
 		checkArgument(gitRev.isCommitId());
 		checkArgument(commit.getId().equals(gitRev.getCommitId()));

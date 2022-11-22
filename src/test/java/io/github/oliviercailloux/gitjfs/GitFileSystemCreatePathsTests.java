@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.oliviercailloux.gitjfs.GitFileFileSystem;
-import io.github.oliviercailloux.gitjfs.GitFileSystem;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl;
 import io.github.oliviercailloux.gitjfs.GitFileSystemProvider;
 import io.github.oliviercailloux.gitjfs.GitFileSystems;
 import java.io.File;
@@ -25,7 +25,7 @@ public class GitFileSystemCreatePathsTests {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitFileSystemCreatePathsTests.class);
 	/**
 	 * We don’t mock directly {@link GitFileFileSystem} because the tested code may
-	 * use its {@link GitFileSystem#mainSlash} field.
+	 * use its {@link GitFileSystemImpl#mainSlash} field.
 	 */
 	static final GitFileFileSystem GIT_FILE_FILE_SYSTEM_MOCKED = GitFileFileSystem.givenOurRepository(mockProvider(),
 			mockFileRepository());
@@ -49,7 +49,7 @@ public class GitFileSystemCreatePathsTests {
 
 	@Test
 	void testCreatePaths() throws Exception {
-		try (GitFileSystem gitFs = GIT_FILE_FILE_SYSTEM_MOCKED) {
+		try (GitFileSystemImpl gitFs = GIT_FILE_FILE_SYSTEM_MOCKED) {
 //			assertEquals("", gitFs.getRelativePath().toString());
 //			assertEquals("", gitFs.getPath("").toString());
 //			assertEquals("", gitFs.getPath("", "", "").toString());

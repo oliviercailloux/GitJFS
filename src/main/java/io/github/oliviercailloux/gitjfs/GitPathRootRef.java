@@ -17,7 +17,7 @@ public class GitPathRootRef extends GitPathRoot {
 
 	private GitPathRootSha sha;
 
-	protected GitPathRootRef(GitFileSystem fileSystem, GitRev gitRev) {
+	protected GitPathRootRef(GitFileSystemImpl fileSystem, GitRev gitRev) {
 		super(fileSystem, gitRev);
 		checkArgument(gitRev.isRef());
 		sha = null;

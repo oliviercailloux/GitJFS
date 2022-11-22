@@ -27,7 +27,7 @@ public interface GitPath extends Path {
 	GitPath toAbsolutePath();
 
 	@Override
-	GitFileSystem getFileSystem();
+	GitFileSystemImpl getFileSystem();
 
 	/**
 	 * Returns {@code true} iff this path has a root component.

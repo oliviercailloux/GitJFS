@@ -3,8 +3,8 @@ package io.github.oliviercailloux.gitjfs;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.FollowLinksBehavior;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.GitObject;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.FollowLinksBehavior;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.GitObject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -42,14 +42,14 @@ public abstract class GitPathRoot extends GitAbsolutePath {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitPathRoot.class);
 
-	static GitPathRoot given(GitFileSystem gitFs, GitRev gitRev) {
+	static GitPathRoot given(GitFileSystemImpl gitFs, GitRev gitRev) {
 		if (gitRev.isCommitId()) {
 			return new GitPathRootSha(gitFs, gitRev, Optional.empty());
 		}
 		return new GitPathRootRef(gitFs, gitRev);
 	}
 
-	private final GitFileSystem fileSystem;
+	private final GitFileSystemImpl fileSystem;
 
 	private final GitRev gitRev;
 
@@ -58,18 +58,18 @@ public abstract class GitPathRoot extends GitAbsolutePath {
 	 * git rev. Its string form ends with //, whereas the string form of a git rev
 	 * ends with a single /; and it never equals a git rev.
 	 */
-	protected GitPathRoot(GitFileSystem fileSystem, GitRev gitRev) {
+	protected GitPathRoot(GitFileSystemImpl fileSystem, GitRev gitRev) {
 		this.fileSystem = checkNotNull(fileSystem);
 		this.gitRev = checkNotNull(gitRev);
 	}
 
 	@Override
 	Path getInternalPath() {
-		return GitFileSystem.JIM_FS_SLASH;
+		return GitFileSystemImpl.JIM_FS_SLASH;
 	}
 
 	@Override
-	public GitFileSystem getFileSystem() {
+	public GitFileSystemImpl getFileSystem() {
 		return fileSystem;
 	}
 
@@ -218,6 +218,6 @@ public abstract class GitPathRoot extends GitAbsolutePath {
 
 	@Override
 	GitObject getGitObject(FollowLinksBehavior behavior) throws NoSuchFileException, IOException {
-		return GitObject.given(GitFileSystem.JIM_FS_SLASH, getRevTree(), FileMode.TREE);
+		return GitObject.given(GitFileSystemImpl.JIM_FS_SLASH, getRevTree(), FileMode.TREE);
 	}
 }

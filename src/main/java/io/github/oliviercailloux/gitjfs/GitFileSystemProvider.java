@@ -6,8 +6,8 @@ import static com.google.common.base.Verify.verify;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.FollowLinksBehavior;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.GitObject;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.FollowLinksBehavior;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.GitObject;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A (partial) implementation of {@link FileSystemProvider}, able to produce
- * instances of {@link GitFileSystem}.
+ * instances of {@link GitFileSystemImpl}.
  *
  * @see #getInstance()
  * @see #newFileSystemFromGitDir(Path)
@@ -286,7 +286,7 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	 * @throws IOException                      if an exception occurred during
 	 *                                          access to the underlying data.
 	 */
-	public GitFileSystem newFileSystemFromRepository(Repository repository)
+	public GitFileSystemImpl newFileSystemFromRepository(Repository repository)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, IOException {
 		if (repository instanceof DfsRepository) {
 			final DfsRepository dfs = (DfsRepository) repository;
@@ -376,7 +376,7 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	 * </p>
 	 * <p>
 	 * The given URI must have been returned by a call to
-	 * {@link GitFileSystem#toUri()} on a git file system instance created by this
+	 * {@link GitFileSystemImpl#toUri()} on a git file system instance created by this
 	 * provider and that is still open; or by {@link GitPathImpl#toUri()} on a git path
 	 * instance associated to a git file system created by this provider and that is
 	 * still open.
@@ -391,13 +391,13 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	 * satisfy it, so I take it to be an imprecise wording.)
 	 * </p>
 	 *
-	 * @param gitFsUri the uri as returned by {@link GitFileSystem#toUri()} or
+	 * @param gitFsUri the uri as returned by {@link GitFileSystemImpl#toUri()} or
 	 *                 {@link GitPathImpl#toUri()}.
 	 * @return an already existing, open git file system.
 	 * @throws FileSystemNotFoundException if no corresponding file system is found.
 	 */
 	@Override
-	public GitFileSystem getFileSystem(URI gitFsUri) throws FileSystemNotFoundException {
+	public GitFileSystemImpl getFileSystem(URI gitFsUri) throws FileSystemNotFoundException {
 		return fses.getFileSystem(gitFsUri);
 	}
 
@@ -445,7 +445,7 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	 * Returns a {@code Path} object by converting the given {@link URI}. The given
 	 * uri must have been returned by {@link GitPathImpl#toUri()} on a path associated
 	 * to an open git file system created by this provider, or directly by
-	 * {@link GitFileSystem#toUri()} on an open git file system created by this
+	 * {@link GitFileSystemImpl#toUri()} on an open git file system created by this
 	 * provider.
 	 * </p>
 	 * <p>
@@ -463,7 +463,7 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	 * @return The resulting {@code Path}
 	 *
 	 * @throws IllegalArgumentException    If the given URI has not been issued by
-	 *                                     {@link GitFileSystem#toUri()} or
+	 *                                     {@link GitFileSystemImpl#toUri()} or
 	 *                                     {@link GitPathImpl#toUri()}.
 	 * @throws FileSystemNotFoundException If the file system, indirectly identified
 	 *                                     by the URI, is not open or has not been
@@ -472,7 +472,7 @@ public class GitFileSystemProvider extends FileSystemProvider {
 	@Override
 	@SuppressWarnings("resource")
 	public GitPathImpl getPath(URI gitFsUri) {
-		final GitFileSystem fs = fses.getFileSystem(gitFsUri);
+		final GitFileSystemImpl fs = fses.getFileSystem(gitFsUri);
 		return GitPathImpl.fromQueryString(fs, QueryUtils.splitQuery(gitFsUri));
 	}
 

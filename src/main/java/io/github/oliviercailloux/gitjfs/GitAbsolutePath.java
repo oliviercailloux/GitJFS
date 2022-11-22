@@ -4,9 +4,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Verify.verify;
 
-import io.github.oliviercailloux.gitjfs.GitFileSystem.FollowLinksBehavior;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.GitObject;
-import io.github.oliviercailloux.gitjfs.GitFileSystem.NoContextAbsoluteLinkException;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.FollowLinksBehavior;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.GitObject;
+import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.NoContextAbsoluteLinkException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
@@ -153,7 +153,7 @@ abstract class GitAbsolutePath extends GitPathImpl {
 		final String first = names.isEmpty() ? "" : names.get(0);
 		final String[] more = names.isEmpty() ? new String[] {}
 				: names.subList(1, names.size()).toArray(new String[] {});
-		final Path internal = GitFileSystem.JIM_FS.getPath(first, more);
+		final Path internal = GitFileSystemImpl.JIM_FS.getPath(first, more);
 		checkArgument(internal.isAbsolute());
 //		final String longName = names.stream().collect(Collectors.joining("/"));
 //		final Path internal = GitFileSystem.JIM_FS_SLASH.resolve(longName);

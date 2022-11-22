@@ -1,462 +1,209 @@
 package io.github.oliviercailloux.gitjfs;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Verify.verify;
-import static com.google.common.base.Verify.verifyNotNull;
-import static io.github.oliviercailloux.jaris.exceptions.Unchecker.IO_UNCHECKER;
-
-import com.google.common.base.MoreObjects;
-import com.google.common.base.VerifyException;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.PeekingIterator;
-import com.google.common.collect.Streams;
-import com.google.common.graph.ImmutableGraph;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
-import io.github.oliviercailloux.jaris.collections.GraphUtils;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.ClosedFileSystemException;
-import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.attribute.UserPrincipalLookupService;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Stream;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.lib.AnyObjectId;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.FileMode;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.ObjectReader;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.treewalk.TreeWalk;
-import org.eclipse.jgit.treewalk.filter.PathFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-/**
- * <p>
- * A git file system. Associated to a git repository. Can be used to obtain
- * {@link GitPathImpl} instances.
- * </p>
- * <p>
- * Must be {@link #close() closed} to release resources associated with readers.
- * </p>
- * <p>
- * Reads links transparently, as documented in <a href=
- * "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/package-summary.html">java.nio.file</a>.
- * Thus, assuming {@code dir} is a symlink to {@code otherdir}, reading
- * {@code dir/file.txt} reads {@code otherdir/file.txt}. This is also how git
- * <a href="https://stackoverflow.com/a/954575">operates</a>: checking out
- * {@code dir} will restore it as a symlink to {@code otherdir}. Use
- * {@link GitFileSystemProvider#readSymbolicLink} to obtain the target of a
- * link. This library will however refuse to follow a link out of the git
- * repository it originates from.
- * <p>
- * Note that a git repository <a href="https://stackoverflow.com/a/3731139">does
- * not use hard links</a>.
- *
- *
- * @see #getAbsolutePath(String, String...)
- * @see #getRelativePath(String...)
- * @see #getGitRootDirectories()
- */
-public abstract class GitFileSystem extends FileSystem {
-	@SuppressWarnings("unused")
-	private static final Logger LOGGER = LoggerFactory.getLogger(GitFileSystem.class);
+public interface GitFileSystem extends AutoCloseable {
 
 	/**
-	 * Used instead of {@link NoSuchFileException} at places where we can’t get the
-	 * string form of the path that is not found (because it is only known to the
-	 * caller).
+	 * Closes this file system.
+	 *
+	 * <p>
+	 * After a file system is closed then all subsequent access to the file system,
+	 * either by methods defined by this class or on objects associated with this
+	 * file system, throw {@link ClosedFileSystemException}. If the file system is
+	 * already closed then invoking this method has no effect.
+	 *
+	 * <p>
+	 * Closing a file system will close all open {@link java.nio.channels.Channel
+	 * channels}, {@link DirectoryStream directory-streams}, {@link WatchService
+	 * watch-service}, and other closeable objects associated with this file system.
+	 * The {@link FileSystems#getDefault default} file system cannot be closed.
+	 *
+	 * @throws IOException                   If an I/O error occurs
+	 * @throws UnsupportedOperationException Thrown in the case of the default file
+	 *                                       system
 	 */
-	@SuppressWarnings("serial")
-	static class NoContextNoSuchFileException extends Exception {
-
-		public NoContextNoSuchFileException() {
-			super();
-		}
-
-		public NoContextNoSuchFileException(String message) {
-			super(message);
-		}
-
-	}
-
-	@SuppressWarnings("serial")
-	static class NoContextAbsoluteLinkException extends Exception {
-
-		private Path absoluteTarget;
-
-		public NoContextAbsoluteLinkException(Path absoluteTarget) {
-			super(absoluteTarget.toString());
-			this.absoluteTarget = checkNotNull(absoluteTarget);
-			checkArgument(absoluteTarget.isAbsolute());
-			checkArgument(absoluteTarget.getFileSystem().equals(FileSystems.getDefault()));
-		}
-
-		public Path getTarget() {
-			return absoluteTarget;
-		}
-
-	}
-
-	static class TreeWalkIterator implements PeekingIterator<GitStringObject> {
-		private final TreeWalk walk;
-		private Boolean hasNext = null;
-
-		private GitStringObject next;
-
-		public TreeWalkIterator(TreeWalk walk) {
-			this.walk = checkNotNull(walk);
-			hasNext = null;
-			next = null;
-		}
-
-		@Override
-		public boolean hasNext() throws DirectoryIteratorException {
-			if (hasNext != null) {
-				return hasNext;
-			}
-
-			try {
-				hasNext = walk.next();
-			} catch (IOException e) {
-				verify(hasNext == null);
-				throw new DirectoryIteratorException(e);
-			}
-
-			if (hasNext) {
-				/**
-				 * Do not use walk.getPathString(): this seems to return not the complete path
-				 * but the path within this tree (i.e., the name).
-				 */
-				final String name = walk.getNameString();
-				final ObjectId objectId = walk.getObjectId(0);
-				final FileMode fileMode = walk.getFileMode();
-				next = GitStringObject.given(name, objectId, fileMode);
-			} else {
-				next = null;
-			}
-
-			return hasNext;
-		}
-
-		@Override
-		public GitStringObject peek() throws DirectoryIteratorException {
-			if (!hasNext()) {
-				throw new NoSuchElementException();
-			}
-			return next;
-		}
-
-		@Override
-		public GitStringObject next() throws DirectoryIteratorException {
-			final GitStringObject current = peek();
-			hasNext = null;
-			next = null;
-			return current;
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
-		public void close() {
-			hasNext = false;
-			walk.close();
-		}
-
-	}
-
-	static class TreeWalkDirectoryStream implements DirectoryStream<GitStringObject> {
-		private final TreeWalk walk;
-		private final TreeWalkIterator iterator;
-		private boolean returned;
-		private boolean closed;
-
-		public TreeWalkDirectoryStream(TreeWalk walk) {
-			this.walk = checkNotNull(walk);
-			iterator = new TreeWalkIterator(walk);
-			returned = false;
-			closed = false;
-		}
-
-		@Override
-		public void close() {
-			closed = true;
-			iterator.close();
-			walk.close();
-		}
-
-		/**
-		 * As requested per the contract of {@link DirectoryStream}, invoking the
-		 * iterator method to obtain a second or subsequent iterator throws
-		 * IllegalStateException.
-		 * <p>
-		 * An important property of the directory stream's Iterator is that its hasNext
-		 * method is guaranteed to read-ahead by at least one element. If hasNext method
-		 * returns true, and is followed by a call to the next method, it is guaranteed
-		 * that the next method will not throw an exception due to an I/O error, or
-		 * because the stream has been closed. The Iterator does not support the remove
-		 * operation.
-		 * <p>
-		 * Once a directory stream is closed, then further access to the directory,
-		 * using the Iterator, behaves as if the end of stream has been reached. Due to
-		 * read-ahead, the Iterator may return one or more elements after the directory
-		 * stream has been closed.
-		 * <p>
-		 * If an I/O error is encountered when accessing the directory then it causes
-		 * the Iterator's hasNext or next methods to throw DirectoryIteratorException
-		 * with the IOException as the cause. As stated above, the hasNext method is
-		 * guaranteed to read-ahead by at least one element. This means that if hasNext
-		 * method returns true, and is followed by a call to the next method, then it is
-		 * guaranteed that the next method will not fail with a
-		 * DirectoryIteratorException.
-		 */
-		@Override
-		public PeekingIterator<GitStringObject> iterator() {
-			if (returned || closed) {
-				throw new IllegalStateException();
-			}
-			returned = true;
-			return iterator;
-		}
-	}
-
-	static class TreeVisit {
-		private final ObjectId objectId;
-		private final List<String> remainingNames;
-
-		public TreeVisit(AnyObjectId objectId, List<String> remainingNames) {
-			this.objectId = objectId.copy();
-			this.remainingNames = checkNotNull(remainingNames);
-		}
-
-		public ObjectId getObjectId() {
-			return objectId;
-		}
-
-		public List<String> getRemainingNames() {
-			return remainingNames;
-		}
-
-		@Override
-		public boolean equals(Object o2) {
-			if (!(o2 instanceof TreeVisit)) {
-				return false;
-			}
-			final TreeVisit t2 = (TreeVisit) o2;
-			return objectId.equals(t2.objectId) && remainingNames.equals(t2.remainingNames);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(objectId, remainingNames);
-		}
-
-		@Override
-		public String toString() {
-			return MoreObjects.toStringHelper(this).add("objectId", objectId).add("remainingNames", remainingNames)
-					.toString();
-		}
-	}
-
-	static class GitStringObject {
-		public static GitStringObject given(String fileName, ObjectId objectId, FileMode fileMode) {
-			return new GitStringObject(fileName, objectId, fileMode);
-		}
-
-		private final String fileName;
-		private final ObjectId objectId;
-		private final FileMode fileMode;
-
-		private GitStringObject(String fileName, ObjectId objectId, FileMode fileMode) {
-			this.fileName = checkNotNull(fileName);
-			this.objectId = objectId;
-			this.fileMode = checkNotNull(fileMode);
-		}
-
-		String getFileName() {
-			return fileName;
-		}
-
-		ObjectId getObjectId() {
-			return objectId;
-		}
-
-		FileMode getFileMode() {
-			return fileMode;
-		}
-	}
-
-	/**
-	 * Object to associate to a git path, verified to exist in the git file system
-	 * corresponding to its corresponding path.
-	 */
-	static class GitObject {
-		/**
-		 * @param realPath absolute jim fs path
-		 */
-		public static GitObject given(Path realPath, ObjectId objectId, FileMode fileMode) {
-			return new GitObject(realPath, objectId, fileMode);
-		}
-
-		private final Path realPath;
-		private final ObjectId objectId;
-		private final FileMode fileMode;
-
-		private GitObject(Path realPath, ObjectId objectId, FileMode fileMode) {
-			this.realPath = checkNotNull(realPath);
-			this.objectId = objectId;
-			this.fileMode = checkNotNull(fileMode);
-		}
-
-		/**
-		 * @return an absolute jim fs path
-		 */
-		Path getRealPath() {
-			return realPath;
-		}
-
-		ObjectId getObjectId() {
-			return objectId;
-		}
-
-		FileMode getFileMode() {
-			return fileMode;
-		}
-	}
-
-	static enum FollowLinksBehavior {
-		DO_NOT_FOLLOW_LINKS, FOLLOW_LINKS_BUT_END, FOLLOW_ALL_LINKS
-	}
-
-	/**
-	 * It is crucial to always use the same instance of Jimfs, because Jimfs refuses
-	 * to resolve paths coming from different instances. And the references to JimFs
-	 * might be better here rather than in {@link GitFileSystemProvider} because
-	 * when {@link GitFileSystemProvider} is initialized, we do not want to refer to
-	 * JimFs, which might not be initialized yet (perhaps this should not create
-	 * problems, but as it seems logically better to have these references here
-	 * anyway, I did not investigate).
-	 */
-	static final FileSystem JIM_FS = Jimfs
-			.newFileSystem(Configuration.unix().toBuilder().setWorkingDirectory("/").build());
-
-	static final Path JIM_FS_EMPTY = JIM_FS.getPath("");
-
-	static final Path JIM_FS_SLASH = JIM_FS.getPath("/");
-
-	private final GitFileSystemProvider gitProvider;
-	private boolean isOpen;
-	private final ObjectReader reader;
-	private final Repository repository;
-	private final boolean shouldCloseRepository;
-
-	private final Set<DirectoryStream<GitPathImpl>> toClose;
-
-	final GitPathRootRef mainSlash = new GitPathRootRef(this, GitPathRoot.DEFAULT_GIT_REF);
-	final GitEmptyPath emptyPath = new GitEmptyPath(mainSlash);
-
-	/**
-	 * Git file system provides low-level access to read operations on a repository
-	 * (such as retrieving a RevCommit given an id; including with specific
-	 * exceptions raised by JGit). The higher level access such as reading a Commit
-	 * and throwing nice user-level exceptions such as {@link NoSuchFileException}
-	 * is left to elsewhere where possible, e.g. GitPathRoot.
-	 */
-	protected GitFileSystem(GitFileSystemProvider gitProvider, Repository repository, boolean shouldCloseRepository) {
-		this.gitProvider = checkNotNull(gitProvider);
-		this.repository = checkNotNull(repository);
-		this.shouldCloseRepository = shouldCloseRepository;
-		reader = repository.newObjectReader();
-		reader.setAvoidUnreachableObjects(true);
-		isOpen = true;
-		this.toClose = new LinkedHashSet<>();
-	}
-
 	@Override
-	public void close() {
-		isOpen = false;
+	void close() throws IOException;
 
-		List<RuntimeException> closeExceptions = new ArrayList<>();
-		try {
-			reader.close();
-		} catch (RuntimeException e) {
-			closeExceptions.add(e);
-		}
-		if (shouldCloseRepository) {
-			try {
-				repository.close();
-			} catch (RuntimeException e) {
-				closeExceptions.add(e);
-			}
-		}
-		for (@SuppressWarnings("resource")
-		DirectoryStream<GitPathImpl> closeable : toClose) {
-			try {
-				closeable.close();
-			} catch (IOException e) {
-				throw new VerifyException("Close should not throw exceptions.", e);
-			} catch (RuntimeException e) {
-				closeExceptions.add(e);
-			}
-		}
-		try {
-			provider().getGitFileSystems().hasBeenClosedEvent(this);
-		} catch (RuntimeException e) {
-			closeExceptions.add(e);
-		}
-		if (!closeExceptions.isEmpty()) {
-			final RuntimeException first = closeExceptions.remove(0);
-			if (!closeExceptions.isEmpty()) {
-				LOGGER.error("Further problems while closing: {}.", closeExceptions);
-			}
-			throw first;
-		}
-	}
+	/**
+	 * Returns the provider that created this file system.
+	 *
+	 * @return The provider that created this file system.
+	 */
+	GitFileSystemProvider provider();
+
+	/**
+	 * Tells whether or not this file system is open.
+	 *
+	 * <p>
+	 * File systems created by the default provider are always open.
+	 *
+	 * @return {@code true} if, and only if, this file system is open
+	 */
+	boolean isOpen();
+
+	/**
+	 * Tells whether or not this file system allows only read-only access to its
+	 * file stores.
+	 *
+	 * @return {@code true} if, and only if, this file system provides read-only
+	 *         access
+	 */
+	boolean isReadOnly();
+
+	/**
+	 * Returns the name separator, represented as a string.
+	 *
+	 * <p>
+	 * The name separator is used to separate names in a path string. An
+	 * implementation may support multiple name separators in which case this method
+	 * returns an implementation specific <em>default</em> name separator. This
+	 * separator is used when creating path strings by invoking the
+	 * {@link Path#toString() toString()} method.
+	 *
+	 * <p>
+	 * In the case of the default provider, this method returns the same separator
+	 * as {@link java.io.File#separator}.
+	 *
+	 * @return The name separator
+	 */
+	String getSeparator();
+
+	/**
+	 * Returns an object to iterate over the paths of the root directories.
+	 *
+	 * <p>
+	 * A file system provides access to a file store that may be composed of a
+	 * number of distinct file hierarchies, each with its own top-level root
+	 * directory. Unless denied by the security manager, each element in the
+	 * returned iterator corresponds to the root directory of a distinct file
+	 * hierarchy. The order of the elements is not defined. The file hierarchies may
+	 * change during the lifetime of the Java virtual machine. For example, in some
+	 * implementations, the insertion of removable media may result in the creation
+	 * of a new file hierarchy with its own top-level directory.
+	 *
+	 * <p>
+	 * When a security manager is installed, it is invoked to check access to the
+	 * each root directory. If denied, the root directory is not returned by the
+	 * iterator. In the case of the default provider, the
+	 * {@link SecurityManager#checkRead(String)} method is invoked to check read
+	 * access to each root directory. It is system dependent if the permission
+	 * checks are done when the iterator is obtained or during iteration.
+	 *
+	 * @return An object to iterate over the root directories
+	 */
+	Iterable<Path> getRootDirectories();
+
+	/**
+	 * Returns an object to iterate over the underlying file stores.
+	 *
+	 * <p>
+	 * The elements of the returned iterator are the {@link FileStore FileStores}
+	 * for this file system. The order of the elements is not defined and the file
+	 * stores may change during the lifetime of the Java virtual machine. When an
+	 * I/O error occurs, perhaps because a file store is not accessible, then it is
+	 * not returned by the iterator.
+	 *
+	 * <p>
+	 * In the case of the default provider, and a security manager is installed, the
+	 * security manager is invoked to check
+	 * {@link RuntimePermission}{@code ("getFileStoreAttributes")}. If denied, then
+	 * no file stores are returned by the iterator. In addition, the security
+	 * manager's {@link SecurityManager#checkRead(String)} method is invoked to
+	 * check read access to the file store's <em>top-most</em> directory. If denied,
+	 * the file store is not returned by the iterator. It is system dependent if the
+	 * permission checks are done when the iterator is obtained or during iteration.
+	 *
+	 * <p>
+	 * <b>Usage Example:</b> Suppose we want to print the space usage for all file
+	 * stores:
+	 *
+	 * <pre>
+	 * for (FileStore store : FileSystems.getDefault().getFileStores()) {
+	 * 	long total = store.getTotalSpace() / 1024;
+	 * 	long used = (store.getTotalSpace() - store.getUnallocatedSpace()) / 1024;
+	 * 	long avail = store.getUsableSpace() / 1024;
+	 * 	System.out.format("%-20s %12d %12d %12d%n", store, total, used, avail);
+	 * }
+	 * </pre>
+	 *
+	 * @return An object to iterate over the backing file stores
+	 */
+	Iterable<FileStore> getFileStores();
+
+	/**
+	 * Returns the set of the {@link FileAttributeView#name names} of the file
+	 * attribute views supported by this {@code FileSystem}.
+	 *
+	 * <p>
+	 * The {@link BasicFileAttributeView} is required to be supported and therefore
+	 * the set contains at least one element, "basic".
+	 *
+	 * <p>
+	 * The {@link FileStore#supportsFileAttributeView(String)
+	 * supportsFileAttributeView(String)} method may be used to test if an
+	 * underlying {@link FileStore} supports the file attributes identified by a
+	 * file attribute view.
+	 *
+	 * @return An unmodifiable set of the names of the supported file attribute
+	 *         views
+	 */
+	Set<String> supportedFileAttributeViews();
 
 	/**
 	 * Converts a path string, or a sequence of strings that when joined form a path
-	 * string, to a {@code GitPath}. If {@code first} starts with {@code /} (or if
-	 * {@code first} is empty and the first non-empty string in {@code more} starts
-	 * with {@code /}), this method behaves as if
-	 * {@link #getAbsolutePath(String, String...)} had been called. Otherwise, it
-	 * behaves as if {@link #getRelativePath(String...)} had been called.
+	 * string, to a {@code Path}. If {@code more} does not specify any elements then
+	 * the value of the {@code first} parameter is the path string to convert. If
+	 * {@code more} specifies one or more elements then each non-empty string,
+	 * including {@code first}, is considered to be a sequence of name elements (see
+	 * {@link Path}) and is joined to form a path string. The details as to how the
+	 * Strings are joined is provider specific but typically they will be joined
+	 * using the {@link #getSeparator name-separator} as the separator. For example,
+	 * if the name separator is "{@code /}" and {@code getPath("/foo","bar","gus")}
+	 * is invoked, then the path string {@code "/foo/bar/gus"} is converted to a
+	 * {@code Path}. A {@code Path} representing an empty path is returned if
+	 * {@code first} is the empty string and {@code more} does not contain any
+	 * non-empty strings.
+	 *
 	 * <p>
-	 * No check is performed to ensure that the path refers to an existing git
-	 * object in this git file system.
-	 * </p>
+	 * The parsing and conversion to a path object is inherently implementation
+	 * dependent. In the simplest case, the path string is rejected, and
+	 * {@link InvalidPathException} thrown, if the path string contains characters
+	 * that cannot be converted to characters that are <em>legal</em> to the file
+	 * store. For example, on UNIX systems, the NUL (&#92;u0000) character is not
+	 * allowed to be present in a path. An implementation may choose to reject path
+	 * strings that contain names that are longer than those allowed by any file
+	 * store, and where an implementation supports a complex path syntax, it may
+	 * choose to reject path strings that are <em>badly formed</em>.
+	 *
+	 * <p>
+	 * In the case of the default provider, path strings are parsed based on the
+	 * definition of paths at the platform or virtual file system level. For
+	 * example, an operating system may not allow specific characters to be present
+	 * in a file name, but a specific underlying file store may impose different or
+	 * additional restrictions on the set of legal characters.
+	 *
+	 * <p>
+	 * This method throws {@link InvalidPathException} when the path string cannot
+	 * be converted to a path. Where possible, and where applicable, the exception
+	 * is created with an {@link InvalidPathException#getIndex index} value
+	 * indicating the first position in the {@code path} parameter that caused the
+	 * path string to be rejected.
 	 *
 	 * @param first the path string or initial part of the path string
 	 * @param more  additional strings to be joined to form the path string
@@ -465,567 +212,221 @@ public abstract class GitFileSystem extends FileSystem {
 	 *
 	 * @throws InvalidPathException If the path string cannot be converted
 	 */
-	@Override
-	public GitPathImpl getPath(String first, String... more) {
-		final ImmutableList<String> allNames = Stream.concat(Stream.of(first), Stream.of(more))
-				.collect(ImmutableList.toImmutableList());
-
-		final boolean startsWithSlash = allNames.stream().filter(n -> !n.isEmpty()).findFirst()
-				.map(s -> s.startsWith("/")).orElse(false);
-		if (startsWithSlash) {
-			return getAbsolutePath(first, more);
-		}
-
-		return GitRelativePath.relative(this, allNames);
-	}
+	Path getPath(String first, String... more);
 
 	/**
-	 * <p>
-	 * Converts an absolute git path string, or a sequence of strings that when
-	 * joined form an absolute git path string, to an absolute {@code GitPath}.
-	 * </p>
-	 * <p>
-	 * If {@code more} does not specify any elements then the value of the
-	 * {@code first} parameter is the path string to convert.
-	 * </p>
-	 * <p>
-	 * If {@code more} specifies one or more elements then each non-empty string,
-	 * including {@code first}, is considered to be a sequence of name elements (see
-	 * {@link Path}) and is joined to form a path string using {@code /} as
-	 * separator. If {@code first} does not end with {@code //} (but ends with
-	 * {@code /}, as required), and if {@code more} does not start with {@code /},
-	 * then a {@code /} is added so that there will be two slashes joining
-	 * {@code first} to {@code more}.
-	 * </p>
-	 * <p>
-	 * For example, if {@code getAbsolutePath("/refs/heads/main/","foo","bar")} is
-	 * invoked, then the path string {@code "/refs/heads/main//foo/bar"} is
-	 * converted to a {@code Path}.
-	 * </p>
-	 * <p>
-	 * No check is performed to ensure that the path refers to an existing git
-	 * object in this git file system.
-	 * </p>
+	 * Returns a {@code PathMatcher} that performs match operations on the
+	 * {@code String} representation of {@link Path} objects by interpreting a given
+	 * pattern.
 	 *
-	 * @param first the string form of the root component, possibly followed by
-	 *              other path segments. Must start with <tt>/refs/</tt> or
-	 *              <tt>/heads/</tt> or <tt>/tags/</tt> or be a slash followed by a
-	 *              40-characters long sha-1; must contain at most once {@code //};
-	 *              if does not contain {@code //}, must end with {@code /}.
-	 * @param more  may start with {@code /}.
-	 * @return an absolute git path.
-	 * @throws InvalidPathException if {@code first} does not contain a syntaxically
-	 *                              valid root component
-	 * @see GitPathImpl
-	 */
-	public GitPathImpl getAbsolutePath(String first, String... more) throws InvalidPathException {
-		final String rootStringForm;
-		final ImmutableList<String> internalPath;
-		if (first.contains("//")) {
-			final int startDoubleSlash = first.indexOf("//");
-			final String beforeMiddleOfDoubleSlash = first.substring(0, startDoubleSlash + 1);
-			final String afterMiddleOfDoubleSlash = first.substring(startDoubleSlash + 1);
-			rootStringForm = beforeMiddleOfDoubleSlash;
-			internalPath = Stream.concat(Stream.of(afterMiddleOfDoubleSlash), Stream.of(more))
-					.collect(ImmutableList.toImmutableList());
-		} else {
-			rootStringForm = first;
-			final List<String> givenMore = new ArrayList<>(ImmutableList.copyOf(more));
-			if (givenMore.isEmpty()) {
-				givenMore.add("/");
-			} else if (!givenMore.get(0).startsWith("/")) {
-				givenMore.set(0, "/" + givenMore.get(0));
-			}
-			internalPath = ImmutableList.copyOf(givenMore);
-		}
-		verify(internalPath.isEmpty() || internalPath.get(0).startsWith("/"));
-
-		final GitRev rev = GitRev.stringForm(rootStringForm);
-		final GitPathRoot root = GitPathRoot.given(this, rev);
-		return GitAbsolutePath.givenRoot(root, internalPath);
-	}
-
-	/**
-	 * Returns a git path referring to a commit designated by its id. No check is
-	 * performed to ensure that the commit exists.
+	 * The {@code syntaxAndPattern} parameter identifies the syntax and the pattern
+	 * and takes the form: <blockquote>
 	 *
-	 * @param commitId      the commit to refer to
-	 * @param internalPath1 may start with a slash.
-	 * @param internalPath  may start with a slash.
-	 * @return an absolute path
-	 * @see GitPathImpl
-	 */
-	public GitPathImpl getAbsolutePath(ObjectId commitId, String internalPath1, String... internalPath) {
-		final String internalPath1StartsRight = internalPath1.startsWith("/") ? internalPath1 : "/" + internalPath1;
-		final ImmutableList<String> givenMore = Streams
-				.concat(Stream.of(internalPath1StartsRight), Stream.of(internalPath))
-				.collect(ImmutableList.toImmutableList());
-		return GitAbsolutePath.givenRoot(new GitPathRootSha(this, GitRev.commitId(commitId), Optional.empty()),
-				givenMore);
-	}
-
-	/**
-	 * Returns an absolute git path. No check is performed to ensure that the ref
-	 * exists, or that the commit this refers to exists.
+	 * <pre>
+	 * <i>syntax</i><b>:</b><i>pattern</i>
+	 * </pre>
 	 *
-	 * @param rootStringForm the string form of the root component. Must start with
-	 *                       <tt>/refs/</tt> or <tt>/heads/</tt> or <tt>/tags/</tt>
-	 *                       or be a 40-characters long sha-1 surrounded by slash
-	 *                       characters; must end with <tt>/</tt>; may not contain
-	 *                       <tt>//</tt> nor <tt>\</tt>.
-	 * @return a git path root
-	 * @throws InvalidPathException if {@code rootStringForm} does not contain a
-	 *                              syntaxically valid root component
-	 * @see GitPathRoot
-	 */
-	public GitPathRoot getPathRoot(String rootStringForm) throws InvalidPathException {
-		return GitPathRoot.given(this, GitRev.stringForm(rootStringForm));
-	}
-
-	public GitPathRootRef getPathRootRef(String rootStringForm) throws InvalidPathException {
-		return new GitPathRootRef(this, GitRev.stringForm(rootStringForm));
-	}
-
-	/**
-	 * Returns a git path referring to a commit designated by its id. No check is
-	 * performed to ensure that the commit exists.
+	 * </blockquote> where {@code ':'} stands for itself.
 	 *
-	 * @param commitId the commit to refer to
-	 * @return a git path root
-	 * @see GitPathRoot
-	 */
-	public GitPathRootSha getPathRoot(ObjectId commitId) {
-		return new GitPathRootSha(this, GitRev.commitId(commitId), Optional.empty());
-	}
-
-	/**
 	 * <p>
-	 * Converts a relative git path string, or a sequence of strings that when
-	 * joined form a relative git path string, to a relative {@code GitPath}.
-	 * </p>
-	 * <p>
-	 * Each non-empty string in {@code names} is considered to be a sequence of name
-	 * elements (see {@link Path}) and is joined to form a path string using
-	 * {@code /} as separator.
-	 * </p>
-	 * <p>
-	 * For example, if {@code getRelativePath("foo","bar")} is invoked, then the
-	 * path string {@code "foo/bar"} is converted to a {@code Path}.
-	 * </p>
-	 * <p>
-	 * An <em>empty</em> path is returned iff names contain only empty strings. It
-	 * then implicitly refers to the main branch of this git file system.
-	 * </p>
-	 * <p>
-	 * No check is performed to ensure that the path refers to an existing git
-	 * object in this git file system.
-	 * </p>
+	 * A {@code FileSystem} implementation supports the "{@code glob}" and
+	 * "{@code regex}" syntaxes, and may support others. The value of the syntax
+	 * component is compared without regard to case.
 	 *
-	 * @param names the internal path; its first element (if any) may not start with
-	 *              {@code /}.
-	 * @return a relative git path.
-	 * @throws InvalidPathException if the first non-empty string in {@code names}
-	 *                              start with {@code /}.
-	 * @see GitPathImpl
-	 */
-	public GitPathImpl getRelativePath(String... names) throws InvalidPathException {
-		return GitRelativePath.relative(this, ImmutableList.copyOf(names));
-	}
-
-	@Override
-	public Iterable<FileStore> getFileStores() {
-		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * Retrieve the set of all commits of this repository. Consider calling rather
-	 * {@code {@link #getCommitsGraph()}.getNodes()}, whose type is more precise.
-	 *
-	 * @return absolute path roots referring to commit ids.
-	 * @throws UncheckedIOException if an I/O error occurs (I have no idea why the
-	 *                              Java Files API does not want an IOException
-	 *                              here)
-	 */
-	@Override
-	public ImmutableSet<Path> getRootDirectories() throws UncheckedIOException {
-		final ImmutableSet<ObjectId> commits = getCommits();
-		final ImmutableSet<Path> paths = commits.stream().map(this::getPathRoot).collect(ImmutableSet.toImmutableSet());
-		return paths;
-	}
-
-	/**
-	 * Retrieve the set of all commits of this repository reachable from some ref.
-	 * This is equivalent to calling {@link #getRootDirectories()}, but with a more
-	 * precise type.
-	 *
-	 * @return absolute path roots, all referring to commit ids (no ref).
-	 * @throws UncheckedIOException if an I/O error occurs (using an Unchecked
-	 *                              variant to mimic the behavior of
-	 *                              {@link #getRootDirectories()})
-	 */
-	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws UncheckedIOException {
-		final ImmutableSet<ObjectId> commits = getCommits();
-		final ImmutableSet<GitPathRootSha> paths = commits.stream().map(this::getPathRoot)
-				.collect(ImmutableSet.toImmutableSet());
-
-		final Function<GitPathRootSha, List<GitPathRootSha>> getParents = IO_UNCHECKER
-				.wrapFunction(p -> p.getParentCommits());
-
-		return ImmutableGraph.copyOf(GraphUtils.asGraph(paths, p -> ImmutableList.of(), getParents::apply));
-	}
-
-	/**
-	 * Returns a set containing one git path root for each git ref (of the form
-	 * <tt>/refs/…</tt>) contained in this git file system. This does not consider
-	 * HEAD or other special references, but considers both branches and tags.
-	 *
-	 * @return git path roots referencing git refs (not commit ids).
-	 *
-	 * @throws IOException if an I/O error occurs
-	 */
-	public ImmutableSet<GitPathRootRef> getRefs() throws IOException {
-		if (!isOpen) {
-			throw new ClosedFileSystemException();
-		}
-
-		final List<Ref> refs = repository.getRefDatabase().getRefsByPrefix(Constants.R_REFS);
-		return refs.stream().map(r -> getPathRootRef("/" + r.getName() + "/")).collect(ImmutableSet.toImmutableSet());
-	}
-
-	private ImmutableSet<ObjectId> getCommits() throws UncheckedIOException {
-		if (!isOpen) {
-			throw new ClosedFileSystemException();
-		}
-
-		final ImmutableSet<ObjectId> allCommits;
-		try (RevWalk walk = new RevWalk(reader)) {
-			/**
-			 * Not easy to get really all commits, so we are content with returning only the
-			 * ones reachable from some ref: this is the normal behavior of git, it seems
-			 * (https://stackoverflow.com/questions/4786972).
-			 */
-			final List<Ref> refs = repository.getRefDatabase().getRefsByPrefix(Constants.R_REFS);
-			walk.setRetainBody(false);
-			for (Ref ref : refs) {
-				walk.markStart(walk.parseCommit(ref.getLeaf().getObjectId()));
-			}
-			allCommits = ImmutableSet.copyOf(walk);
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-		return allCommits;
-	}
-
-	@Override
-	public PathMatcher getPathMatcher(String syntaxAndPattern) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public String getSeparator() {
-		verify(JIM_FS.getSeparator().equals("/"));
-		return "/";
-	}
-
-	@Override
-	public UserPrincipalLookupService getUserPrincipalLookupService() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public boolean isOpen() {
-		return isOpen;
-	}
-
-	@Override
-	public boolean isReadOnly() {
-		return true;
-	}
-
-	byte[] getBytes(AnyObjectId objectId) throws IOException {
-		if (!isOpen) {
-			throw new ClosedFileSystemException();
-		}
-
-		final ObjectLoader fileLoader = reader.open(objectId, Constants.OBJ_BLOB);
-		verify(fileLoader.getType() == Constants.OBJ_BLOB);
-		final byte[] bytes = fileLoader.getBytes();
-		return bytes;
-	}
-
-	/**
-	 * Does nothing with links, i.e., just lists them as any other entries. Just
-	 * like the default FS on Linux.
-	 */
-	@SuppressWarnings("resource")
-	TreeWalkDirectoryStream iterate(RevTree tree) throws IOException {
-		if (!isOpen) {
-			throw new ClosedFileSystemException();
-		}
-
-		LOGGER.debug("Iterating over {}.", tree);
-
-		final TreeWalk treeWalk = new TreeWalk(reader);
-		treeWalk.addTree(tree);
-		treeWalk.setRecursive(false);
-		final TreeWalkDirectoryStream dirStream = new TreeWalkDirectoryStream(treeWalk);
-		LOGGER.debug("Created stream.");
-		return dirStream;
-	}
-
-	@Override
-	public WatchService newWatchService() throws IOException {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public GitFileSystemProvider provider() {
-		return gitProvider;
-	}
-
-	long getSize(GitObject gitObject) throws IOException {
-		if (!isOpen) {
-			throw new ClosedFileSystemException();
-		}
-
-		final int previousThreshold = reader.getStreamFileThreshold();
-		LOGGER.debug("Retrieving size of {}.", gitObject);
-		final long size = reader.getObjectSize(gitObject.getObjectId(), ObjectReader.OBJ_ANY);
-		LOGGER.debug("Got size: {}.", size);
-		reader.setStreamFileThreshold(previousThreshold);
-		return size;
-	}
-
-	@Override
-	public Set<String> supportedFileAttributeViews() {
-		throw new UnsupportedOperationException();
-	}
-
-	RevTree getRevTree(ObjectId treeId) throws IOException {
-		if (!isOpen) {
-			throw new ClosedFileSystemException();
-		}
-
-		final RevTree revTree;
-		try (RevWalk walk = new RevWalk(reader)) {
-			revTree = walk.parseTree(treeId);
-		}
-		return revTree;
-	}
-
-	RevCommit getRevCommit(ObjectId possibleCommitId)
-			throws MissingObjectException, IncorrectObjectTypeException, IOException {
-		if (!isOpen) {
-			throw new ClosedFileSystemException();
-		}
-
-		final RevCommit revCommit;
-		try (RevWalk walk = new RevWalk(reader)) {
-			revCommit = walk.parseCommit(possibleCommitId);
-		}
-		return revCommit;
-	}
-
-	GitObject getGitObject(RevTree rootTree, Path relativePath, FollowLinksBehavior behavior)
-			throws IOException, PathCouldNotBeFoundException, NoContextNoSuchFileException {
-		if (!isOpen) {
-			throw new ClosedFileSystemException();
-		}
-
-		/**
-		 * https://www.eclipse.org/forums/index.php?t=msg&th=1103986
-		 *
-		 * Set up a stack of trees, starting with a one-entry stack containing the root
-		 * tree.
-		 *
-		 * And a stack of remaining names.
-		 *
-		 * Pick first name, obtain its tree, push on the tree stack. If not a tree but a
-		 * blob, and no remaining name, we’re done. If is a symlink, then that’s even
-		 * more remaining names enqueued on the stack. If the name is .., then need to
-		 * pop the stack of trees instead of reading. If ".", then just skip it.
-		 */
-		final Deque<ObjectId> trees = new ArrayDeque<>();
-		trees.addFirst(rootTree);
-
-		final Set<TreeVisit> visited = new LinkedHashSet<>();
-
-		final Deque<String> remainingNames = new ArrayDeque<>(
-				ImmutableList.copyOf(Iterables.transform(relativePath, Path::toString)));
-
-		Path currentPath = JIM_FS_SLASH;
-		GitObject currentGitObject = GitObject.given(currentPath, rootTree, FileMode.TREE);
-
-		try (TreeWalk treeWalk = new TreeWalk(repository, reader)) {
-			treeWalk.addTree(rootTree);
-			LOGGER.debug("Starting search for {}, {}.", relativePath, behavior);
-			while (!remainingNames.isEmpty()) {
-				final TreeVisit visit = new TreeVisit(trees.peek(), ImmutableList.copyOf(remainingNames));
-				LOGGER.debug("Adding {} to visited.", visit);
-				final boolean added = visited.add(visit);
-				if (!added) {
-					verify(behavior != FollowLinksBehavior.DO_NOT_FOLLOW_LINKS,
-							"Should not cycle when not following links, but seems to cycle anyway: " + visit);
-					throw new NoContextNoSuchFileException("Cycle at " + remainingNames);
-				}
-
-				final String currentName = remainingNames.pop();
-				LOGGER.debug("Considering '{}'.", currentName);
-				if (currentName.equals(".")) {
-				} else if (currentName.equals("")) {
-				} else if (currentName.equals("..")) {
-					trees.pop();
-					if (trees.isEmpty()) {
-						throw new NoContextNoSuchFileException("Attempt to move to parent of root.");
-					}
-					final ObjectId currentTree = trees.peek();
-					treeWalk.reset(currentTree);
-					LOGGER.debug("Moving current to the parent of {}.", currentPath);
-//					currentPath = currentPath.getNameCount() == 1 ? Path.of("") : currentPath.getParent();
-					currentPath = currentPath.getParent();
-					assert currentPath != null;
-					currentGitObject = GitObject.given(currentPath, currentTree, FileMode.TREE);
-				} else {
-					currentPath = currentPath.resolve(currentName);
-					LOGGER.debug("Moved current to: {}.", currentPath);
-
-					final String absoluteCurrent = currentPath.toString();
-					verify(absoluteCurrent.startsWith("/"));
-					final PathFilter filter = PathFilter.create(absoluteCurrent.substring(1));
-					treeWalk.setFilter(filter);
-					treeWalk.setRecursive(false);
-
-					final boolean toNext = treeWalk.next();
-					if (!toNext) {
-						throw new NoContextNoSuchFileException("Could not find " + currentPath);
-					}
-					verify(filter.isDone(treeWalk));
-
-					final FileMode fileMode = treeWalk.getFileMode();
-					assert (fileMode != null);
-					final ObjectId objectId = treeWalk.getObjectId(0);
-					currentGitObject = GitObject.given(currentPath, objectId, fileMode);
-
-					verify(!objectId.equals(ObjectId.zeroId()), absoluteCurrent);
-
-					if (fileMode.equals(FileMode.REGULAR_FILE) || fileMode.equals(FileMode.EXECUTABLE_FILE)) {
-						if (!remainingNames.isEmpty()) {
-							throw new NoContextNoSuchFileException(String.format(
-									"Path '%s' is a file, but remaining path is '%s'.", currentPath, remainingNames));
-						}
-					} else if (fileMode.equals(FileMode.GITLINK)) {
-						if (!remainingNames.isEmpty()) {
-							throw new NoContextNoSuchFileException(
-									String.format("Path '%s' is a git link, but remaining path is '%s'.", currentPath,
-											remainingNames));
-						}
-					} else if (fileMode.equals(FileMode.SYMLINK)) {
-						final boolean followThisLink;
-						switch (behavior) {
-						case DO_NOT_FOLLOW_LINKS:
-							if (!remainingNames.isEmpty()) {
-								throw new PathCouldNotBeFoundException(String.format(
-										"Path '%s' is a link, but I may not follow the links, and the remaining path is '%s'.",
-										currentPath, remainingNames));
-							}
-							followThisLink = false;
-							break;
-						case FOLLOW_ALL_LINKS:
-							followThisLink = true;
-							break;
-						case FOLLOW_LINKS_BUT_END:
-							followThisLink = !remainingNames.isEmpty();
-							break;
-						default:
-							throw new VerifyException();
-						}
-						if (followThisLink) {
-							Path target;
-							try {
-								target = getLinkTarget(objectId);
-							} catch (NoContextAbsoluteLinkException e) {
-								throw new PathCouldNotBeFoundException(
-										"Absolute link target encountered: " + e.getTarget());
-							}
-							final ImmutableList<String> targetNames = ImmutableList
-									.copyOf(Iterables.transform(target, Path::toString));
-							LOGGER.debug("Link found; moving current to the parent of {}; prefixing {} to names.",
-									currentPath, targetNames);
-							currentPath = currentPath.getParent();
-							targetNames.reverse().stream().forEachOrdered(remainingNames::addFirst);
-							/**
-							 * Need to reset, otherwise searching again (in the next iteration) will fail.
-							 */
-							treeWalk.reset(trees.peek());
-						}
-					} else if (fileMode.equals(FileMode.TREE)) {
-						LOGGER.debug("Found tree, entering.");
-						trees.addFirst(objectId);
-						treeWalk.enterSubtree();
-					} else {
-						throw new UnsupportedOperationException("Unknown file mode: " + fileMode.toString());
-					}
-				}
-			}
-		}
-		return currentGitObject;
-	}
-
-	/**
-	 * @return a relative jim fs path
-	 */
-	Path getLinkTarget(AnyObjectId objectId) throws IOException, NoContextAbsoluteLinkException {
-		final String linkContent = new String(getBytes(objectId), StandardCharsets.UTF_8);
-		final Path target = JIM_FS.getPath(linkContent);
-		if (target.isAbsolute()) {
-			throw new NoContextAbsoluteLinkException(Path.of(linkContent));
-		}
-		return target;
-	}
-
-	/**
 	 * <p>
-	 * Returns a gitjfs URI that identifies this git file system, and this specific
-	 * git file system instance while it is open.
-	 * </p>
-	 * <p>
-	 * While this instance is open, giving the returned URI to
-	 * {@link GitFileSystemProvider#getFileSystem(URI)} will return this file system
-	 * instance; giving it to {@link GitFileSystemProvider#getPath(URI)} will return
-	 * the default path associated to this file system.
-	 * </p>
+	 * When the syntax is "{@code glob}" then the {@code String} representation of
+	 * the path is matched using a limited pattern language that resembles regular
+	 * expressions but with a simpler syntax. For example:
 	 *
-	 * @return the URI that identifies this file system.
+	 * <table class="striped" style="text-align:left; margin-left:2em">
+	 * <caption style="display:none">Pattern Language</caption> <thead>
+	 * <tr>
+	 * <th scope="col">Example
+	 * <th scope="col">Description
+	 * </tr>
+	 * </thead> <tbody>
+	 * <tr>
+	 * <th scope="row">{@code *.java}</th>
+	 * <td>Matches a path that represents a file name ending in {@code .java}</td>
+	 * </tr>
+	 * <tr>
+	 * <th scope="row">{@code *.*}</th>
+	 * <td>Matches file names containing a dot</td>
+	 * </tr>
+	 * <tr>
+	 * <th scope="row">{@code *.{java,class}}</th>
+	 * <td>Matches file names ending with {@code .java} or {@code .class}</td>
+	 * </tr>
+	 * <tr>
+	 * <th scope="row">{@code foo.?}</th>
+	 * <td>Matches file names starting with {@code foo.} and a single character
+	 * extension</td>
+	 * </tr>
+	 * <tr>
+	 * <th scope="row"><code>&#47;home&#47;*&#47;*</code>
+	 * <td>Matches <code>&#47;home&#47;gus&#47;data</code> on UNIX platforms</td>
+	 * </tr>
+	 * <tr>
+	 * <th scope="row"><code>&#47;home&#47;**</code>
+	 * <td>Matches <code>&#47;home&#47;gus</code> and
+	 * <code>&#47;home&#47;gus&#47;data</code> on UNIX platforms</td>
+	 * </tr>
+	 * <tr>
+	 * <th scope="row"><code>C:&#92;&#92;*</code>
+	 * <td>Matches <code>C:&#92;foo</code> and <code>C:&#92;bar</code> on the
+	 * Windows platform (note that the backslash is escaped; as a string literal in
+	 * the Java Language the pattern would be
+	 * <code>"C:&#92;&#92;&#92;&#92;*"</code>)</td>
+	 * </tr>
+	 * </tbody>
+	 * </table>
+	 *
+	 * <p>
+	 * The following rules are used to interpret glob patterns:
+	 *
+	 * <ul>
+	 * <li>
+	 * <p>
+	 * The {@code *} character matches zero or more {@link Character characters} of
+	 * a {@link Path#getName(int) name} component without crossing directory
+	 * boundaries.
+	 * </p>
+	 * </li>
+	 *
+	 * <li>
+	 * <p>
+	 * The {@code **} characters matches zero or more {@link Character characters}
+	 * crossing directory boundaries.
+	 * </p>
+	 * </li>
+	 *
+	 * <li>
+	 * <p>
+	 * The {@code ?} character matches exactly one character of a name component.
+	 * </p>
+	 * </li>
+	 *
+	 * <li>
+	 * <p>
+	 * The backslash character ({@code \}) is used to escape characters that would
+	 * otherwise be interpreted as special characters. The expression {@code \\}
+	 * matches a single backslash and "\{" matches a left brace for example.
+	 * </p>
+	 * </li>
+	 *
+	 * <li>
+	 * <p>
+	 * The {@code [ ]} characters are a <i>bracket expression</i> that match a
+	 * single character of a name component out of a set of characters. For example,
+	 * {@code [abc]} matches {@code "a"}, {@code "b"}, or {@code "c"}. The hyphen
+	 * ({@code -}) may be used to specify a range so {@code [a-z]} specifies a range
+	 * that matches from {@code "a"} to {@code "z"} (inclusive). These forms can be
+	 * mixed so [abce-g] matches {@code "a"}, {@code "b"}, {@code "c"}, {@code "e"},
+	 * {@code "f"} or {@code "g"}. If the character after the {@code [} is a
+	 * {@code !} then it is used for negation so {@code
+	 *   [!a-c]} matches any character except {@code "a"}, {@code "b"}, or {@code
+	 *   "c"}.
+	 * <p>
+	 * Within a bracket expression the {@code *}, {@code ?} and {@code \} characters
+	 * match themselves. The ({@code -}) character matches itself if it is the first
+	 * character within the brackets, or the first character after the {@code !} if
+	 * negating.
+	 * </p>
+	 * </li>
+	 *
+	 * <li>
+	 * <p>
+	 * The {@code { }} characters are a group of subpatterns, where the group
+	 * matches if any subpattern in the group matches. The {@code ","} character is
+	 * used to separate the subpatterns. Groups cannot be nested.
+	 * </p>
+	 * </li>
+	 *
+	 * <li>
+	 * <p>
+	 * Leading period<code>&#47;</code>dot characters in file name are treated as
+	 * regular characters in match operations. For example, the {@code "*"} glob
+	 * pattern matches file name {@code ".login"}. The {@link Files#isHidden} method
+	 * may be used to test whether a file is considered hidden.
+	 * </p>
+	 * </li>
+	 *
+	 * <li>
+	 * <p>
+	 * All other characters match themselves in an implementation dependent manner.
+	 * This includes characters representing any {@link FileSystem#getSeparator
+	 * name-separators}.
+	 * </p>
+	 * </li>
+	 *
+	 * <li>
+	 * <p>
+	 * The matching of {@link Path#getRoot root} components is highly
+	 * implementation-dependent and is not specified.
+	 * </p>
+	 * </li>
+	 *
+	 * </ul>
+	 *
+	 * <p>
+	 * When the syntax is "{@code regex}" then the pattern component is a regular
+	 * expression as defined by the {@link java.util.regex.Pattern} class.
+	 *
+	 * <p>
+	 * For both the glob and regex syntaxes, the matching details, such as whether
+	 * the matching is case sensitive, are implementation-dependent and therefore
+	 * not specified.
+	 *
+	 * @param syntaxAndPattern The syntax and pattern
+	 *
+	 * @return A path matcher that may be used to match paths against the pattern
+	 *
+	 * @throws IllegalArgumentException               If the parameter does not take
+	 *                                                the form:
+	 *                                                {@code syntax:pattern}
+	 * @throws java.util.regex.PatternSyntaxException If the pattern is invalid
+	 * @throws UnsupportedOperationException          If the pattern syntax is not
+	 *                                                known to the implementation
+	 *
+	 * @see Files#newDirectoryStream(Path,String)
 	 */
-	public URI toUri() {
-		return gitProvider.getGitFileSystems().toUri(this);
-	}
+	PathMatcher getPathMatcher(String syntaxAndPattern);
 
 	/**
-	 * Note that if this method returns an object id, it means that this object id
-	 * exists in the database. But it may be a blob, a tree, … (at least if the
-	 * given git ref is a tag, not sure otherwise), see
-	 * https://git-scm.com/book/en/v2/Git-Internals-Git-References.
+	 * Returns the {@code UserPrincipalLookupService} for this file system
+	 * <i>(optional operation)</i>. The resulting lookup service may be used to
+	 * lookup user or group names.
+	 *
+	 * <p>
+	 * <b>Usage Example:</b> Suppose we want to make "joe" the owner of a file:
+	 *
+	 * <pre>
+	 * UserPrincipalLookupService lookupService = FileSystems.getDefault().getUserPrincipalLookupService();
+	 * Files.setOwner(path, lookupService.lookupPrincipalByName("joe"));
+	 * </pre>
+	 *
+	 * @throws UnsupportedOperationException If this {@code FileSystem} does not
+	 *                                       does have a lookup service
+	 *
+	 * @return The {@code UserPrincipalLookupService} for this file system
 	 */
-	Optional<ObjectId> getObjectId(String gitRef) throws IOException {
-		if (!isOpen) {
-			throw new ClosedFileSystemException();
-		}
+	UserPrincipalLookupService getUserPrincipalLookupService();
 
-		final Ref ref = repository.exactRef(gitRef);
-		if (ref == null) {
-			return Optional.empty();
-		}
-
-		verify(ref.getName().equals(gitRef));
-		verify(!ref.isSymbolic());
-		final ObjectId possibleCommitId = ref.getObjectId();
-		verifyNotNull(possibleCommitId);
-		return Optional.of(possibleCommitId);
-	}
-
-	void toClose(DirectoryStream<GitPathImpl> stream) {
-		toClose.add(stream);
-	}
-
+	/**
+	 * Constructs a new {@link WatchService} <i>(optional operation)</i>.
+	 *
+	 * <p>
+	 * This method constructs a new watch service that may be used to watch
+	 * registered objects for changes and events.
+	 *
+	 * @return a new watch service
+	 *
+	 * @throws UnsupportedOperationException If this {@code FileSystem} does not
+	 *                                       support watching file system objects
+	 *                                       for changes and events. This exception
+	 *                                       is not thrown by {@code FileSystems}
+	 *                                       created by the default provider.
+	 * @throws IOException                   If an I/O error occurs
+	 */
+	WatchService newWatchService() throws IOException;
 }
