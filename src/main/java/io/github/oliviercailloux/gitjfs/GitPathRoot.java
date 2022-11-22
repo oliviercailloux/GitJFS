@@ -6,11 +6,30 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import org.eclipse.jgit.lib.ObjectId;
 
+/**
+ * A git path root is an absolute git path that has an empty sequence of names.
+ * In other words, it consists in a root component only. Its string form ends
+ * with <tt>//</tt>.
+ * <p>
+ * Note that the commit referred to (possibly indirectly) by this git path root
+ * may not exist in the associated git file system. This occurs when either:
+ * </p>
+ * <ul>
+ * <li>this path root contains a git ref which does not exist in this
+ * repository;</li>
+ * <li>this path root contains a git ref which refers to a sha that is not a
+ * commit;</li>
+ * <li>this path root contains a sha that is not a commit or does not
+ * exist.</li>
+ * </ul>
+ *
+ * @see GitPath
+ */
 public interface GitPathRoot extends GitPath {
 
-	GitPathRootShaCachedImpl toShaCached() throws IOException, NoSuchFileException;
+	GitPathRootShaCached toShaCached() throws IOException, NoSuchFileException;
 
-	ImmutableList<GitPathRootShaImpl> getParentCommits() throws IOException, NoSuchFileException;
+	ImmutableList<? extends GitPathRootSha> getParentCommits() throws IOException, NoSuchFileException;
 
 	/**
 	 * If {@link Files#exists} returns {@code false}, an exception is thrown.
@@ -66,13 +85,14 @@ public interface GitPathRoot extends GitPath {
 	 * @return {@code null}
 	 */
 	@Override
-	GitPathImpl getParent();
+	@Deprecated
+	GitPath getParent();
 
 	/**
 	 * Returns this path.
 	 */
 	@Override
-	GitPathRootImpl toAbsolutePath();
+	GitPathRoot toAbsolutePath();
 
 	/**
 	 * Returns itself.
@@ -80,11 +100,11 @@ public interface GitPathRoot extends GitPath {
 	 * @return itself
 	 */
 	@Override
-	GitPathRootImpl getRoot();
+	GitPathRoot getRoot();
 
 	@Override
-	GitFileSystemImpl getFileSystem();
+	GitFileSystem getFileSystem();
 
-	GitPathRootShaImpl toSha() throws IOException, NoSuchFileException;
+	GitPathRootSha toSha() throws IOException, NoSuchFileException;
 
 }

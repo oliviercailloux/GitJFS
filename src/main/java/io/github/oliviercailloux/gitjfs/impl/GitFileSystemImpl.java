@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.gitjfs;
+package io.github.oliviercailloux.gitjfs.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -16,6 +16,8 @@ import com.google.common.collect.Streams;
 import com.google.common.graph.ImmutableGraph;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import io.github.oliviercailloux.gitjfs.GitFileSystem;
+import io.github.oliviercailloux.gitjfs.PathCouldNotBeFoundException;
 import io.github.oliviercailloux.jaris.collections.GraphUtils;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -62,7 +64,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class GitFileSystemImpl extends FileSystem implements GitFileSystem {
+public abstract class GitFileSystemImpl extends GitFileSystem {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitFileSystemImpl.class);
 
@@ -338,10 +340,10 @@ public abstract class GitFileSystemImpl extends FileSystem implements GitFileSys
 	 * It is crucial to always use the same instance of Jimfs, because Jimfs refuses
 	 * to resolve paths coming from different instances. And the references to JimFs
 	 * might be better here rather than in {@link GitFileSystemProviderImpl} because
-	 * when {@link GitFileSystemProviderImpl} is initialized, we do not want to refer to
-	 * JimFs, which might not be initialized yet (perhaps this should not create
-	 * problems, but as it seems logically better to have these references here
-	 * anyway, I did not investigate).
+	 * when {@link GitFileSystemProviderImpl} is initialized, we do not want to
+	 * refer to JimFs, which might not be initialized yet (perhaps this should not
+	 * create problems, but as it seems logically better to have these references
+	 * here anyway, I did not investigate).
 	 */
 	static final FileSystem JIM_FS = Jimfs
 			.newFileSystem(Configuration.unix().toBuilder().setWorkingDirectory("/").build());

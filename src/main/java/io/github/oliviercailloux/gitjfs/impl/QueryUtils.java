@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.gitjfs;
+package io.github.oliviercailloux.gitjfs.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;

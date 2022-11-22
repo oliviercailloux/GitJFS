@@ -1,12 +1,14 @@
-package io.github.oliviercailloux.gitjfs;
+package io.github.oliviercailloux.gitjfs.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Verify.verify;
 
-import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.FollowLinksBehavior;
-import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.GitObject;
-import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.NoContextAbsoluteLinkException;
+import io.github.oliviercailloux.gitjfs.AbsoluteLinkException;
+import io.github.oliviercailloux.gitjfs.SeekableInMemoryByteChannel;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.FollowLinksBehavior;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.GitObject;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.NoContextAbsoluteLinkException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;

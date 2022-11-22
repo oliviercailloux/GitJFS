@@ -1,12 +1,11 @@
-package io.github.oliviercailloux.gitjfs;
+package io.github.oliviercailloux.gitjfs.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.github.oliviercailloux.gitjfs.GitFileFileSystem;
-import io.github.oliviercailloux.gitjfs.GitFileSystemImpl;
-import io.github.oliviercailloux.gitjfs.GitFileSystemProviderImpl;
-import io.github.oliviercailloux.gitjfs.GitFileSystems;
+import io.github.oliviercailloux.gitjfs.impl.GitFileFileSystemImpl;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemProviderImpl;
 import java.io.File;
 import java.nio.file.InvalidPathException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
@@ -24,10 +23,10 @@ public class GitFileSystemCreatePathsTests {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitFileSystemCreatePathsTests.class);
 	/**
-	 * We don’t mock directly {@link GitFileFileSystem} because the tested code may
+	 * We don’t mock directly {@link GitFileFileSystemImpl} because the tested code may
 	 * use its {@link GitFileSystemImpl#mainSlash} field.
 	 */
-	static final GitFileFileSystem GIT_FILE_FILE_SYSTEM_MOCKED = GitFileFileSystem.givenOurRepository(mockProvider(),
+	static final GitFileFileSystemImpl GIT_FILE_FILE_SYSTEM_MOCKED = GitFileFileSystemImpl.givenOurRepository(mockProvider(),
 			mockFileRepository());
 
 	private static GitFileSystemProviderImpl mockProvider() {

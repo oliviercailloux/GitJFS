@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.gitjfs;
+package io.github.oliviercailloux.gitjfs.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verify;
@@ -27,13 +27,13 @@ class GitFileSystems {
 	/**
 	 * Keys are absolute paths.
 	 */
-	private final BiMap<Path, GitFileFileSystem> cachedFileFileSystems = HashBiMap.create();
+	private final BiMap<Path, GitFileFileSystemImpl> cachedFileFileSystems = HashBiMap.create();
 	/**
 	 * Key is the repository name, unescaped (original). An empty name is authorized
 	 * (this is sensible when the user wishes to have only one in-memory file
 	 * system).
 	 */
-	private final BiMap<String, GitDfsFileSystem> cachedDfsFileSystems = HashBiMap.create();
+	private final BiMap<String, GitDfsFileSystemImpl> cachedDfsFileSystems = HashBiMap.create();
 
 	public void verifyCanCreateFileSystemCorrespondingTo(Path gitDir) throws FileSystemAlreadyExistsException {
 		if (cachedFileFileSystems.containsKey(gitDir.toAbsolutePath())) {
@@ -50,16 +50,16 @@ class GitFileSystems {
 	}
 
 	String getExistingUniqueId(GitFileSystemImpl gitFs) {
-		if (gitFs instanceof GitFileFileSystem) {
-			final GitFileFileSystem gitFileFs = (GitFileFileSystem) gitFs;
+		if (gitFs instanceof GitFileFileSystemImpl) {
+			final GitFileFileSystemImpl gitFileFs = (GitFileFileSystemImpl) gitFs;
 			final Path path = cachedFileFileSystems.inverse().get(gitFileFs);
 			checkArgument(path != null);
 			verify(path.isAbsolute());
 			return path.toString();
 		}
 
-		if (gitFs instanceof GitDfsFileSystem) {
-			final GitDfsFileSystem gitDfsFs = (GitDfsFileSystem) gitFs;
+		if (gitFs instanceof GitDfsFileSystemImpl) {
+			final GitDfsFileSystemImpl gitDfsFs = (GitDfsFileSystemImpl) gitFs;
 			final String id = cachedDfsFileSystems.inverse().get(gitDfsFs);
 			checkArgument(id != null);
 			return id;
@@ -123,7 +123,7 @@ class GitFileSystems {
 		return fs;
 	}
 
-	public GitFileFileSystem getFileSystemFromGitDir(Path gitDir) throws FileSystemNotFoundException {
+	public GitFileFileSystemImpl getFileSystemFromGitDir(Path gitDir) throws FileSystemNotFoundException {
 		final Path absolutePath = gitDir.toAbsolutePath();
 		if (!cachedFileFileSystems.containsKey(absolutePath)) {
 			throw new FileSystemNotFoundException("No system at " + gitDir + ".");
@@ -131,7 +131,7 @@ class GitFileSystems {
 		return cachedFileFileSystems.get(absolutePath);
 	}
 
-	public GitDfsFileSystem getFileSystemFromName(String name) throws FileSystemNotFoundException {
+	public GitDfsFileSystemImpl getFileSystemFromName(String name) throws FileSystemNotFoundException {
 		if (!cachedDfsFileSystems.containsKey(name)) {
 			throw new FileSystemNotFoundException("No system at " + name + ".");
 		}
@@ -139,8 +139,8 @@ class GitFileSystems {
 	}
 
 	public URI toUri(GitFileSystemImpl gitFs) {
-		if (gitFs instanceof GitFileFileSystem) {
-			final GitFileFileSystem gitFileFs = (GitFileFileSystem) gitFs;
+		if (gitFs instanceof GitFileFileSystemImpl) {
+			final GitFileFileSystemImpl gitFileFs = (GitFileFileSystemImpl) gitFs;
 			final Path gitDir = gitFileFs.getGitDir();
 			final String pathStr = gitDir.toAbsolutePath().toString();
 			final String pathStrSlash = pathStr.endsWith("/") ? pathStr : pathStr + "/";
@@ -148,8 +148,8 @@ class GitFileSystems {
 					.getUsing(() -> new URI(GitFileSystemProviderImpl.SCHEME, FILE_AUTHORITY, pathStrSlash, null));
 		}
 
-		if (gitFs instanceof GitDfsFileSystem) {
-			final GitDfsFileSystem gitDfsFs = (GitDfsFileSystem) gitFs;
+		if (gitFs instanceof GitDfsFileSystemImpl) {
+			final GitDfsFileSystemImpl gitDfsFs = (GitDfsFileSystemImpl) gitFs;
 			final String name = getName(gitDfsFs.getRepository());
 			verifyNotNull(name);
 			/**
@@ -171,26 +171,26 @@ class GitFileSystems {
 		return dfsRepository.getDescription().getRepositoryName();
 	}
 
-	public void put(Path gitDir, GitFileFileSystem newFs) {
+	public void put(Path gitDir, GitFileFileSystemImpl newFs) {
 		LOGGER.debug("Adding an entry at {}: {}.", gitDir, newFs);
 		verifyCanCreateFileSystemCorrespondingTo(gitDir);
 		cachedFileFileSystems.put(gitDir.toAbsolutePath(), newFs);
 	}
 
-	public void put(DfsRepository dfsRespository, GitDfsFileSystem newFs) {
+	public void put(DfsRepository dfsRespository, GitDfsFileSystemImpl newFs) {
 		verifyCanCreateFileSystemCorrespondingTo(dfsRespository);
 		cachedDfsFileSystems.put(getName(dfsRespository), newFs);
 	}
 
 	void hasBeenClosedEvent(GitFileSystemImpl gitFs) {
-		if (gitFs instanceof GitFileFileSystem) {
-			final GitFileFileSystem gitFileFs = (GitFileFileSystem) gitFs;
+		if (gitFs instanceof GitFileFileSystemImpl) {
+			final GitFileFileSystemImpl gitFileFs = (GitFileFileSystemImpl) gitFs;
 			LOGGER.debug("Removing {} from {}.", gitFileFs, cachedFileFileSystems);
-			final BiMap<GitFileFileSystem, Path> inverse = cachedFileFileSystems.inverse();
+			final BiMap<GitFileFileSystemImpl, Path> inverse = cachedFileFileSystems.inverse();
 			final Path path = inverse.remove(gitFileFs);
 			checkArgument(path != null, inverse.keySet().toString());
-		} else if (gitFs instanceof GitDfsFileSystem) {
-			final GitDfsFileSystem gitDfsFs = (GitDfsFileSystem) gitFs;
+		} else if (gitFs instanceof GitDfsFileSystemImpl) {
+			final GitDfsFileSystemImpl gitDfsFs = (GitDfsFileSystemImpl) gitFs;
 			final String id = cachedDfsFileSystems.inverse().remove(gitDfsFs);
 			checkArgument(id != null);
 		} else {

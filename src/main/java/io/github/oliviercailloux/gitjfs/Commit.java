@@ -27,26 +27,10 @@ import org.eclipse.jgit.revwalk.RevCommit;
  * but committed (by someone else) about twenty minutes earlier.
  */
 public class Commit {
-	private static ZonedDateTime getCreationTime(PersonIdent ident) {
-		final Date creationInstant = ident.getWhen();
-		final TimeZone creationZone = ident.getTimeZone();
-		final ZonedDateTime creationTime = ZonedDateTime.ofInstant(creationInstant.toInstant(),
-				creationZone.toZoneId());
-		return creationTime;
-	}
-
 	public static Commit from(ObjectId id, String authorName, String authorEmail, ZonedDateTime authorDate,
 			String committerName, String committerEmail, ZonedDateTime committerDate, List<ObjectId> parents) {
 		return new Commit(id, authorName, authorEmail, authorDate, committerName, committerEmail, committerDate,
 				parents);
-	}
-
-	static Commit create(RevCommit revCommit) {
-		final PersonIdent authorIdent = revCommit.getAuthorIdent();
-		final PersonIdent committerIdent = revCommit.getCommitterIdent();
-		return Commit.create(revCommit, authorIdent.getName(), authorIdent.getEmailAddress(),
-				getCreationTime(authorIdent), committerIdent.getName(), committerIdent.getEmailAddress(),
-				getCreationTime(committerIdent), ImmutableList.copyOf(revCommit.getParents()));
 	}
 
 	static Commit create(ObjectId id, String authorName, String authorEmail, ZonedDateTime authorDate,

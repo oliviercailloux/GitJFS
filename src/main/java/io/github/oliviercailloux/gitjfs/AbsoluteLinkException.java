@@ -16,7 +16,7 @@ public class AbsoluteLinkException extends IOException {
 	private final GitPath linkPath;
 	private final Path target;
 
-	AbsoluteLinkException(GitPathImpl linkPath, Path target) {
+	public AbsoluteLinkException(GitPath linkPath, Path target) {
 		super(String.format("Link path: %s has an absolute target: %s.", linkPath, target));
 		this.linkPath = checkNotNull(linkPath);
 		this.target = checkNotNull(target);

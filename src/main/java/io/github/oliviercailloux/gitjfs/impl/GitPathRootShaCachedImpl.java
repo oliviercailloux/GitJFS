@@ -1,9 +1,10 @@
-package io.github.oliviercailloux.gitjfs;
+package io.github.oliviercailloux.gitjfs.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verify;
 
-import java.io.IOException;
+import io.github.oliviercailloux.gitjfs.Commit;
+import io.github.oliviercailloux.gitjfs.GitPathRootShaCached;
 import java.util.Optional;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ public class GitPathRootShaCachedImpl extends GitPathRootShaImpl implements GitP
 	}
 
 	@Override
-	public GitPathRootShaCachedImpl toShaCached() throws IOException {
+	public GitPathRootShaCachedImpl toShaCached() {
 		return this;
 	}
 
@@ -37,6 +38,6 @@ public class GitPathRootShaCachedImpl extends GitPathRootShaImpl implements GitP
 
 	@Override
 	public Commit getCommit() {
-		return Commit.create(getRevCommit());
+		return getCommit(getRevCommit());
 	}
 }

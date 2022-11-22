@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.gitjfs;
+package io.github.oliviercailloux.gitjfs.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -8,14 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.net.UrlEscapers;
-import io.github.oliviercailloux.gitjfs.GitAbsolutePath;
-import io.github.oliviercailloux.gitjfs.GitFileSystemImpl;
-import io.github.oliviercailloux.gitjfs.GitFileSystemProviderImpl;
-import io.github.oliviercailloux.gitjfs.GitPathImpl;
-import io.github.oliviercailloux.gitjfs.GitPathRootImpl;
-import io.github.oliviercailloux.gitjfs.GitRelativePath;
-import io.github.oliviercailloux.gitjfs.GitRev;
-import io.github.oliviercailloux.gitjfs.QueryUtils;
+import io.github.oliviercailloux.gitjfs.GitFileSystem;
 import io.github.oliviercailloux.jgit.JGit;
 import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
@@ -185,7 +178,7 @@ public class GitPathInternalTests {
 	void testStartsWith() throws Exception {
 		try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
 			JGit.createRepoWithSubDir(repo);
-			try (GitFileSystemImpl gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
+			try (GitFileSystem gitFs = GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
 				assertTrue(
 						gitFs.getRelativePath().toAbsolutePath().startsWith(gitFs.getRelativePath().toAbsolutePath()));
 				assertTrue(gitFs.getRelativePath("ploum.txt").toAbsolutePath()

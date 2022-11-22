@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.gitjfs;
+package io.github.oliviercailloux.gitjfs.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verify;
@@ -6,8 +6,11 @@ import static com.google.common.base.Verify.verify;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
-import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.FollowLinksBehavior;
-import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.GitObject;
+import io.github.oliviercailloux.gitjfs.AbsoluteLinkException;
+import io.github.oliviercailloux.gitjfs.GitFileSystemProvider;
+import io.github.oliviercailloux.gitjfs.IGitFileSystem;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.FollowLinksBehavior;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.GitObject;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
@@ -52,7 +55,7 @@ import org.slf4j.LoggerFactory;
  * @see #newFileSystemFromGitDir(Path)
  * @see #newFileSystemFromDfsRepository(DfsRepository)
  */
-public class GitFileSystemProviderImpl extends FileSystemProvider implements GitFileSystemProvider {
+public class GitFileSystemProviderImpl extends GitFileSystemProvider {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitFileSystemProviderImpl.class);
 
@@ -68,7 +71,7 @@ public class GitFileSystemProviderImpl extends FileSystemProvider implements Git
 	 *
 	 * @return the instance of this class registered for this scheme.
 	 */
-	public static GitFileSystemProviderImpl getInstance() {
+	public static GitFileSystemProvider getInstance() {
 		if (instance == null) {
 			FileSystemProvider.installedProviders();
 			verify(instance != null);
@@ -111,7 +114,7 @@ public class GitFileSystemProviderImpl extends FileSystemProvider implements Git
 	}
 
 	@Override
-	public GitFileFileSystem newFileSystem(URI gitFsUri)
+	public GitFileFileSystemImpl newFileSystem(URI gitFsUri)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, NoSuchFileException, IOException {
 		final Path gitDir = fses.getGitDir(gitFsUri);
 		return newFileSystemFromGitDir(gitDir);
@@ -119,21 +122,21 @@ public class GitFileSystemProviderImpl extends FileSystemProvider implements Git
 
 	@Deprecated
 	@Override
-	public GitFileFileSystem newFileSystem(URI gitFsUri, Map<String, ?> env)
+	public GitFileFileSystemImpl newFileSystem(URI gitFsUri, Map<String, ?> env)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, NoSuchFileException, IOException {
 		return newFileSystem(gitFsUri);
 	}
 
 	@Deprecated
 	@Override
-	public GitFileFileSystem newFileSystem(Path gitDir, Map<String, ?> env)
+	public GitFileFileSystemImpl newFileSystem(Path gitDir, Map<String, ?> env)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, NoSuchFileException, IOException {
 		return newFileSystemFromGitDir(gitDir);
 	}
 
 	@Override
 	@SuppressWarnings("resource")
-	public GitFileFileSystem newFileSystemFromGitDir(Path gitDir)
+	public GitFileFileSystemImpl newFileSystemFromGitDir(Path gitDir)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, NoSuchFileException, IOException {
 		/**
 		 * Implementation note: this method also throws UnsupportedOperationException if
@@ -164,7 +167,7 @@ public class GitFileSystemProviderImpl extends FileSystemProvider implements Git
 			if (!repo.getObjectDatabase().exists()) {
 				throw new UnsupportedOperationException(String.format("Object database not found in %s.", gitDir));
 			}
-			final GitFileFileSystem newFs = GitFileFileSystem.givenOurRepository(this, repo);
+			final GitFileFileSystemImpl newFs = GitFileFileSystemImpl.givenOurRepository(this, repo);
 			fses.put(gitDir, newFs);
 			return newFs;
 		} catch (Exception e) {
@@ -179,7 +182,7 @@ public class GitFileSystemProviderImpl extends FileSystemProvider implements Git
 	}
 
 	@Override
-	public GitFileSystemImpl newFileSystemFromRepository(Repository repository)
+	public IGitFileSystem newFileSystemFromRepository(Repository repository)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, IOException {
 		if (repository instanceof DfsRepository) {
 			final DfsRepository dfs = (DfsRepository) repository;
@@ -194,7 +197,7 @@ public class GitFileSystemProviderImpl extends FileSystemProvider implements Git
 
 	@Override
 	@SuppressWarnings("unused")
-	public GitFileFileSystem newFileSystemFromFileRepository(FileRepository repository)
+	public GitFileFileSystemImpl newFileSystemFromFileRepository(FileRepository repository)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, IOException {
 		final Path gitDir = repository.getDirectory().toPath();
 		fses.verifyCanCreateFileSystemCorrespondingTo(gitDir);
@@ -202,13 +205,13 @@ public class GitFileSystemProviderImpl extends FileSystemProvider implements Git
 		if (!repository.getObjectDatabase().exists()) {
 			throw new UnsupportedOperationException(String.format("Object database not found in %s.", gitDir));
 		}
-		final GitFileFileSystem newFs = GitFileFileSystem.givenUserRepository(this, repository);
+		final GitFileFileSystemImpl newFs = GitFileFileSystemImpl.givenUserRepository(this, repository);
 		fses.put(gitDir, newFs);
 		return newFs;
 	}
 
 	@Override
-	public GitDfsFileSystem newFileSystemFromDfsRepository(DfsRepository repository)
+	public IGitDfsFileSystem newFileSystemFromDfsRepository(DfsRepository repository)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException {
 		fses.verifyCanCreateFileSystemCorrespondingTo(repository);
 
@@ -216,7 +219,7 @@ public class GitFileSystemProviderImpl extends FileSystemProvider implements Git
 			throw new UnsupportedOperationException(String.format("Object database not found."));
 		}
 
-		final GitDfsFileSystem newFs = GitDfsFileSystem.givenUserRepository(this, repository);
+		final GitDfsFileSystemImpl newFs = GitDfsFileSystemImpl.givenUserRepository(this, repository);
 		fses.put(repository, newFs);
 		return newFs;
 	}
@@ -227,12 +230,12 @@ public class GitFileSystemProviderImpl extends FileSystemProvider implements Git
 	}
 
 	@Override
-	public GitFileFileSystem getFileSystemFromGitDir(Path gitDir) throws FileSystemNotFoundException {
+	public GitFileFileSystemImpl getFileSystemFromGitDir(Path gitDir) throws FileSystemNotFoundException {
 		return fses.getFileSystemFromGitDir(gitDir);
 	}
 
 	@Override
-	public GitDfsFileSystem getFileSystemFromRepositoryName(String name) throws FileSystemNotFoundException {
+	public GitDfsFileSystemImpl getFileSystemFromRepositoryName(String name) throws FileSystemNotFoundException {
 		return fses.getFileSystemFromName(name);
 	}
 

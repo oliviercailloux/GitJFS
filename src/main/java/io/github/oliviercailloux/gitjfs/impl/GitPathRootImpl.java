@@ -1,17 +1,23 @@
-package io.github.oliviercailloux.gitjfs;
+package io.github.oliviercailloux.gitjfs.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Verify.verify;
 
 import com.google.common.collect.ImmutableList;
-import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.FollowLinksBehavior;
-import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.GitObject;
+import io.github.oliviercailloux.gitjfs.Commit;
+import io.github.oliviercailloux.gitjfs.GitPathRoot;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.FollowLinksBehavior;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.GitObject;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.Optional;
+import java.util.TimeZone;
 import org.eclipse.jgit.lib.FileMode;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.slf4j.Logger;
@@ -73,6 +79,7 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
 		return gitRev;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public GitPathImpl getParent() {
 		verify(getInternalPath().getParent() == null);
@@ -142,7 +149,16 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
 		 * accesses the main branch should she test its existence, and even there,
 		 * perhaps she knows that this branch exists (e.g. her own repositories).
 		 */
-		return Commit.create(getRevCommit());
+		final RevCommit revCommit = getRevCommit();
+		return getCommit(revCommit);
+	}
+
+	Commit getCommit(RevCommit revCommit) {
+		final PersonIdent authorIdent = revCommit.getAuthorIdent();
+		final PersonIdent committerIdent = revCommit.getCommitterIdent();
+		return Commit.from(revCommit, authorIdent.getName(), authorIdent.getEmailAddress(),
+				getCreationTime(authorIdent), committerIdent.getName(), committerIdent.getEmailAddress(),
+				getCreationTime(committerIdent), ImmutableList.copyOf(revCommit.getParents()));
 	}
 
 	@Override
@@ -168,5 +184,13 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
 	@Override
 	GitObject getGitObject(FollowLinksBehavior behavior) throws NoSuchFileException, IOException {
 		return GitObject.given(GitFileSystemImpl.JIM_FS_SLASH, getRevTree(), FileMode.TREE);
+	}
+
+	private static ZonedDateTime getCreationTime(PersonIdent ident) {
+		final Date creationInstant = ident.getWhen();
+		final TimeZone creationZone = ident.getTimeZone();
+		final ZonedDateTime creationTime = ZonedDateTime.ofInstant(creationInstant.toInstant(),
+				creationZone.toZoneId());
+		return creationTime;
 	}
 }

@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.gitjfs;
+package io.github.oliviercailloux.gitjfs.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -7,9 +7,10 @@ import static com.google.common.base.Verify.verify;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.Streams;
 import com.google.common.jimfs.Jimfs;
-import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.FollowLinksBehavior;
-import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.GitObject;
-import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.NoContextNoSuchFileException;
+import io.github.oliviercailloux.gitjfs.PathCouldNotBeFoundException;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.FollowLinksBehavior;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.GitObject;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.NoContextNoSuchFileException;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;

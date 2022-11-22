@@ -1,7 +1,8 @@
-package io.github.oliviercailloux.gitjfs;
+package io.github.oliviercailloux.gitjfs.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import io.github.oliviercailloux.gitjfs.GitPathRootSha;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.util.Optional;
