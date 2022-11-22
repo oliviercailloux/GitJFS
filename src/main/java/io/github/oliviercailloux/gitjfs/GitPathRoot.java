@@ -1,6 +1,7 @@
 package io.github.oliviercailloux.gitjfs;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Verify.verify;
 
 import com.google.common.collect.ImmutableList;
 import io.github.oliviercailloux.gitjfs.GitFileSystemImpl.FollowLinksBehavior;
@@ -98,6 +99,17 @@ public abstract class GitPathRoot extends GitAbsolutePath {
 
 	GitRev toStaticRev() {
 		return gitRev;
+	}
+
+	/**
+	 * Returns {@code null}.
+	 *
+	 * @return {@code null}
+	 */
+	@Override
+	public GitPath getParent() {
+		verify(getInternalPath().getParent() == null);
+		return null;
 	}
 
 	/**
