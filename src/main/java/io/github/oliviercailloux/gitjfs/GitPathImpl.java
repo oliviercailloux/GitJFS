@@ -685,7 +685,7 @@ public abstract class GitPathImpl implements Path, GitPath {
 	 *                           system can’t be accessed
 	 */
 	@Override
-	public Path toRealPath(LinkOption... options)
+	public GitPath toRealPath(LinkOption... options)
 			throws IOException, PathCouldNotBeFoundException, NoSuchFileException {
 		final boolean followLinks = !ImmutableSet.copyOf(options).contains(LinkOption.NOFOLLOW_LINKS);
 		final GitAbsolutePath absolute = toAbsolutePathAsAbsolutePath();
