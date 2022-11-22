@@ -107,7 +107,7 @@ public abstract class GitPathRoot extends GitAbsolutePath {
 	 * @return {@code null}
 	 */
 	@Override
-	public GitPath getParent() {
+	public GitPathImpl getParent() {
 		verify(getInternalPath().getParent() == null);
 		return null;
 	}
