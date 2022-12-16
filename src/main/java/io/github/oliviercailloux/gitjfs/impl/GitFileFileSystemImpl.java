@@ -2,6 +2,7 @@ package io.github.oliviercailloux.gitjfs.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.github.oliviercailloux.gitjfs.GitFileFileSystem;
 import io.github.oliviercailloux.gitjfs.IGitFileFileSystem;
 import java.nio.file.Path;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
@@ -16,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * @see GitFileSystemProviderImpl#newFileSystemFromGitDir(Path)
  * @see GitFileSystemProviderImpl#newFileSystemFromFileRepository(FileRepository)
  */
-public class GitFileFileSystemImpl extends GitFileSystemImpl implements IGitFileFileSystem {
+public class GitFileFileSystemImpl extends GitFileFileSystem implements IGitFileFileSystem {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitFileFileSystemImpl.class);
 

@@ -352,7 +352,7 @@ public interface IGitFileSystemProvider {
 	 * Throws {@code ReadOnlyFileSystemException}.
 	 */
 	@Deprecated
-	void createLink(Path link, Path existing) throws IOException;
+	void createLink(Path link, Path existing) throws ReadOnlyFileSystemException;
 
 	/**
 	 * Throws {@code ReadOnlyFileSystemException}.

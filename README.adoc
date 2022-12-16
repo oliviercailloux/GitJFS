@@ -1,0 +1,9 @@
+= gitjfs
+
+<C>FS
+<C>GitFS
+<C>GitFSImpl	<C>GitFileFS
+		<C>GitFileFSImpl
+
+Thus, GitFileFSImpl may not extend GitFSImpl.
+		

@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import io.github.oliviercailloux.gitjfs.AbsoluteLinkException;
+import io.github.oliviercailloux.gitjfs.GitFileFileSystem;
 import io.github.oliviercailloux.gitjfs.GitFileSystemProvider;
 import io.github.oliviercailloux.gitjfs.IGitDfsFileSystem;
 import io.github.oliviercailloux.gitjfs.IGitFileSystem;
@@ -17,7 +18,6 @@ import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.AccessMode;
-import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
@@ -115,7 +115,7 @@ public class GitFileSystemProviderImpl extends GitFileSystemProvider {
 	}
 
 	@Override
-	public GitFileFileSystemImpl newFileSystem(URI gitFsUri)
+	public GitFileFileSystem newFileSystem(URI gitFsUri)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, NoSuchFileException, IOException {
 		final Path gitDir = fses.getGitDir(gitFsUri);
 		return newFileSystemFromGitDir(gitDir);
@@ -283,42 +283,6 @@ public class GitFileSystemProviderImpl extends GitFileSystemProvider {
 				return Iterators.transform(newDirectoryStream.iterator(), (p) -> p);
 			}
 		};
-	}
-
-	@Override
-	public void createDirectory(Path dir, FileAttribute<?>... attrs) throws ReadOnlyFileSystemException {
-		throw new ReadOnlyFileSystemException();
-	}
-
-	@Override
-	public void createSymbolicLink(Path link, Path target, FileAttribute<?>... attrs)
-			throws ReadOnlyFileSystemException {
-		throw new ReadOnlyFileSystemException();
-	}
-
-	@Override
-	public void createLink(Path link, Path existing) throws ReadOnlyFileSystemException {
-		throw new ReadOnlyFileSystemException();
-	}
-
-	@Override
-	public void delete(Path path) throws ReadOnlyFileSystemException {
-		throw new ReadOnlyFileSystemException();
-	}
-
-	@Override
-	public boolean deleteIfExists(Path path) throws ReadOnlyFileSystemException {
-		throw new ReadOnlyFileSystemException();
-	}
-
-	@Override
-	public void copy(Path source, Path target, CopyOption... options) throws ReadOnlyFileSystemException {
-		throw new ReadOnlyFileSystemException();
-	}
-
-	@Override
-	public void move(Path source, Path target, CopyOption... options) throws ReadOnlyFileSystemException {
-		throw new ReadOnlyFileSystemException();
 	}
 
 	@Override
