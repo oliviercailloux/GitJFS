@@ -3,6 +3,7 @@ package io.github.oliviercailloux.gitjfs.impl;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verifyNotNull;
 
+import io.github.oliviercailloux.gitjfs.IGitDfsFileSystem;
 import org.eclipse.jgit.internal.storage.dfs.DfsRepository;
 
 public class GitDfsFileSystemImpl extends GitFileSystemImpl implements IGitDfsFileSystem {

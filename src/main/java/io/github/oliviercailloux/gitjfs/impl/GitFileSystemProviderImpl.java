@@ -8,6 +8,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import io.github.oliviercailloux.gitjfs.AbsoluteLinkException;
 import io.github.oliviercailloux.gitjfs.GitFileSystemProvider;
+import io.github.oliviercailloux.gitjfs.IGitDfsFileSystem;
 import io.github.oliviercailloux.gitjfs.IGitFileSystem;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.FollowLinksBehavior;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.GitObject;

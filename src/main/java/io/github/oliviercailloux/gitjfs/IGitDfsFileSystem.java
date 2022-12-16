@@ -1,6 +1,6 @@
-package io.github.oliviercailloux.gitjfs.impl;
+package io.github.oliviercailloux.gitjfs;
 
-import io.github.oliviercailloux.gitjfs.IGitFileSystem;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemProviderImpl;
 import org.eclipse.jgit.internal.storage.dfs.DfsRepository;
 
 /**

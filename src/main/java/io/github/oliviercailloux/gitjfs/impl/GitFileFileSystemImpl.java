@@ -2,6 +2,7 @@ package io.github.oliviercailloux.gitjfs.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import io.github.oliviercailloux.gitjfs.IGitFileFileSystem;
 import java.nio.file.Path;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Repository;

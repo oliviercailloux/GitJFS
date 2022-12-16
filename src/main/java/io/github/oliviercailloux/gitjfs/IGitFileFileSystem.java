@@ -1,6 +1,6 @@
-package io.github.oliviercailloux.gitjfs.impl;
+package io.github.oliviercailloux.gitjfs;
 
-import io.github.oliviercailloux.gitjfs.IGitFileSystem;
+import io.github.oliviercailloux.gitjfs.impl.GitFileSystemProviderImpl;
 import java.net.URI;
 import java.nio.file.Path;
 

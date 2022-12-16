@@ -9,6 +9,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.graph.GraphBuilder;
 import io.github.oliviercailloux.gitjfs.GitFileSystem;
+import io.github.oliviercailloux.gitjfs.IGitDfsFileSystem;
+import io.github.oliviercailloux.gitjfs.IGitFileFileSystem;
 import io.github.oliviercailloux.gitjfs.IGitFileSystemProvider;
 import io.github.oliviercailloux.jgit.JGit;
 import jakarta.ws.rs.core.UriBuilder;

@@ -5,8 +5,6 @@ import io.github.oliviercailloux.gitjfs.impl.GitFileFileSystemImpl;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemProviderImpl;
 import io.github.oliviercailloux.gitjfs.impl.GitPathImpl;
-import io.github.oliviercailloux.gitjfs.impl.IGitDfsFileSystem;
-import io.github.oliviercailloux.gitjfs.impl.IGitFileFileSystem;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
