@@ -71,7 +71,7 @@ public class GitFileFileSystemImpl extends GitFileFileSystem {
 
 	@Override
 	public URI toUri() {
-		return delegate.provider().getGitFileSystems().toUri(this);
+		return delegate.toUri();
 	}
 
 	@Override
