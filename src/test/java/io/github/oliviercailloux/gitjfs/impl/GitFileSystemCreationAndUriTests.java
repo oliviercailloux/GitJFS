@@ -89,7 +89,7 @@ class GitFileSystemCreationAndUriTests {
 			final IGitFileFileSystem obtained = GitFileSystemProviderImpl.getInstance().getFileSystemFromGitDir(dir);
 			assertEquals(gitFs, obtained);
 			final URI expectedUri = UriBuilder.fromUri("gitjfs://FILE").path(dir + "/").build();
-			assertEquals(expectedUri, ((GitFileSystemImpl) gitFs).toUri());
+			assertEquals(expectedUri, ((GitFileSystem) gitFs).toUri());
 			final IGitFileSystemProvider p = GitFileSystemProviderImpl.getInstance();
 			@SuppressWarnings("resource")
 			final GitFileSystem obtained2 = p.getFileSystem(expectedUri);
@@ -107,7 +107,7 @@ class GitFileSystemCreationAndUriTests {
 			@SuppressWarnings("resource")
 			final IGitFileFileSystem obtained = GitFileSystemProviderImpl.getInstance().getFileSystemFromGitDir(dir);
 			assertEquals(gitFs, obtained);
-			assertEquals(uri, ((GitFileSystemImpl) gitFs).toUri());
+			assertEquals(uri, ((GitFileSystem) gitFs).toUri());
 			final IGitFileSystemProvider p = GitFileSystemProviderImpl.getInstance();
 			@SuppressWarnings("resource")
 			final GitFileSystem obtained2 = p.getFileSystem(uri);
@@ -129,7 +129,7 @@ class GitFileSystemCreationAndUriTests {
 						.getFileSystemFromRepositoryName(name);
 				assertEquals(gitFs, obtained);
 				final URI expectedUri = URI.create("gitjfs://DFS/my/repo,@+%20space");
-				assertEquals(expectedUri, ((GitFileSystemImpl) gitFs).toUri());
+				assertEquals(expectedUri, ((GitFileSystem) gitFs).toUri());
 				final IGitFileSystemProvider p = GitFileSystemProviderImpl.getInstance();
 				@SuppressWarnings("resource")
 				final GitFileSystem obtained2 = p.getFileSystem(expectedUri);

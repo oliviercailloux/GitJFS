@@ -243,7 +243,7 @@ public class GitFileSystemProviderImpl extends GitFileSystemProvider {
 	@Override
 	@SuppressWarnings("resource")
 	public GitPathImpl getPath(URI gitFsUri) {
-		final GitFileSystemImpl fs = fses.getFileSystem(gitFsUri);
+		final GitFileSystemImpl fs = fses.getFileSystemDelegate(gitFsUri);
 		return GitPathImpl.fromQueryString(fs, QueryUtils.splitQuery(gitFsUri));
 	}
 

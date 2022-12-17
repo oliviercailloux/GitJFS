@@ -8,6 +8,9 @@ import static io.github.oliviercailloux.jaris.exceptions.Unchecker.URI_UNCHECKER
 import com.google.common.base.VerifyException;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import io.github.oliviercailloux.gitjfs.GitDfsFileSystem;
 import io.github.oliviercailloux.gitjfs.GitFileFileSystem;
 import io.github.oliviercailloux.gitjfs.GitFileSystem;
@@ -97,7 +100,28 @@ class GitFileSystems {
 	}
 
 	@SuppressWarnings("resource")
-	public GitFileSystemImpl getFileSystem(URI gitUri) throws FileSystemNotFoundException {
+	public GitFileSystem getFileSystem(URI gitUri) throws FileSystemNotFoundException {
+		checkArgument(Objects.equals(gitUri.getScheme(), GitFileSystemProviderImpl.SCHEME));
+		final String authority = gitUri.getAuthority();
+		checkArgument(authority != null);
+		final GitFileSystem fs;
+		switch (authority) {
+		case FILE_AUTHORITY:
+			final Path gitDir = getGitDir(gitUri);
+			fs = getFileSystemFromGitDir(gitDir);
+			break;
+		case DFS_AUTHORITY:
+			final String name = getRepositoryName(gitUri);
+			fs = getFileSystemFromName(name);
+			break;
+		default:
+			throw new VerifyException();
+		}
+		return fs;
+	}
+
+	@SuppressWarnings("resource")
+	public GitFileSystemImpl getFileSystemDelegate(URI gitUri) throws FileSystemNotFoundException {
 		checkArgument(Objects.equals(gitUri.getScheme(), GitFileSystemProviderImpl.SCHEME));
 		final String authority = gitUri.getAuthority();
 		checkArgument(authority != null);
@@ -132,15 +156,13 @@ class GitFileSystems {
 		return cachedDfsFileSystems.get(name);
 	}
 
-	public URI toUri(GitFileFileSystem gitFs) {
-		return toUriImpl(gitFs);
-	}
-
-	public URI toUri(GitDfsFileSystem gitFs) {
-		return toUriImpl(gitFs);
-	}
-
-	private URI toUriImpl(GitFileSystem gitFs) {
+	public URI toUri(GitFileSystem gitFsOrDelegate) {
+		final GitFileSystem gitFs;
+		if ((gitFsOrDelegate instanceof GitFileFileSystem) || (gitFsOrDelegate instanceof GitDfsFileSystem)) {
+			gitFs = gitFsOrDelegate;
+		} else {
+			gitFs = havingDelegate(gitFsOrDelegate);
+		}
 		if (gitFs instanceof GitFileFileSystem gitFileFs) {
 			final Path gitDir = gitFileFs.getGitDir();
 			final String pathStr = gitDir.toAbsolutePath().toString();
@@ -167,6 +189,17 @@ class GitFileSystems {
 		}
 
 		throw new IllegalArgumentException("Unknown repository type.");
+	}
+
+	private GitFileSystem havingDelegate(GitFileSystem delegate) {
+		final ImmutableSet<GitFileFileSystemImpl> fileFses = cachedFileFileSystems.values().stream()
+				.filter(v -> v.delegate().equals(delegate)).collect(ImmutableSet.toImmutableSet());
+		final ImmutableSet<GitDfsFileSystemImpl> dfsFses = cachedDfsFileSystems.values().stream()
+				.filter(v -> v.delegate().equals(delegate)).collect(ImmutableSet.toImmutableSet());
+		final ImmutableSet<GitFileSystem> founds = Sets.union(fileFses, dfsFses).immutableCopy();
+		verify(founds.size() <= 1);
+		checkArgument(founds.size() == 1);
+		return Iterables.getOnlyElement(founds);
 	}
 
 	private String getName(final DfsRepository dfsRepository) {
