@@ -64,6 +64,10 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Cheating a bit about the GitFS as this class does not implement toUri. But it
+ * makes everything much more complex to avoid this.
+ */
 class GitFileSystemImpl extends GitFileSystem {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitFileSystemImpl.class);
@@ -780,7 +784,7 @@ class GitFileSystemImpl extends GitFileSystem {
 
 	@Override
 	public URI toUri() {
-		return gitProvider.getGitFileSystems().toUri(this);
+		throw new UnsupportedOperationException();
 	}
 
 	/**

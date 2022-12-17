@@ -56,7 +56,7 @@ public class GitDfsFileSystemImpl extends GitDfsFileSystem {
 
 	@Override
 	public URI toUri() {
-		return delegate.toUri();
+		return delegate.provider().getGitFileSystems().toUri(this);
 	}
 
 	@Override
