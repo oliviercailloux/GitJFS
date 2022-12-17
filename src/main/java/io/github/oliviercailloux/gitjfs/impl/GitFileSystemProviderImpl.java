@@ -7,10 +7,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import io.github.oliviercailloux.gitjfs.AbsoluteLinkException;
+import io.github.oliviercailloux.gitjfs.GitDfsFileSystem;
 import io.github.oliviercailloux.gitjfs.GitFileFileSystem;
+import io.github.oliviercailloux.gitjfs.GitFileSystem;
 import io.github.oliviercailloux.gitjfs.GitFileSystemProvider;
-import io.github.oliviercailloux.gitjfs.IGitDfsFileSystem;
-import io.github.oliviercailloux.gitjfs.IGitFileSystem;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.FollowLinksBehavior;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.GitObject;
 import java.io.IOException;
@@ -123,7 +123,7 @@ public class GitFileSystemProviderImpl extends GitFileSystemProvider {
 
 	@Deprecated
 	@Override
-	public GitFileFileSystemImpl newFileSystem(URI gitFsUri, Map<String, ?> env)
+	public GitFileFileSystem newFileSystem(URI gitFsUri, Map<String, ?> env)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, NoSuchFileException, IOException {
 		return newFileSystem(gitFsUri);
 	}
@@ -183,7 +183,7 @@ public class GitFileSystemProviderImpl extends GitFileSystemProvider {
 	}
 
 	@Override
-	public IGitFileSystem newFileSystemFromRepository(Repository repository)
+	public GitFileSystem newFileSystemFromRepository(Repository repository)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, IOException {
 		if (repository instanceof DfsRepository) {
 			final DfsRepository dfs = (DfsRepository) repository;
@@ -212,7 +212,7 @@ public class GitFileSystemProviderImpl extends GitFileSystemProvider {
 	}
 
 	@Override
-	public IGitDfsFileSystem newFileSystemFromDfsRepository(DfsRepository repository)
+	public GitDfsFileSystem newFileSystemFromDfsRepository(DfsRepository repository)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException {
 		fses.verifyCanCreateFileSystemCorrespondingTo(repository);
 
@@ -226,17 +226,17 @@ public class GitFileSystemProviderImpl extends GitFileSystemProvider {
 	}
 
 	@Override
-	public GitFileSystemImpl getFileSystem(URI gitFsUri) throws FileSystemNotFoundException {
+	public GitFileSystem getFileSystem(URI gitFsUri) throws FileSystemNotFoundException {
 		return fses.getFileSystem(gitFsUri);
 	}
 
 	@Override
-	public GitFileFileSystemImpl getFileSystemFromGitDir(Path gitDir) throws FileSystemNotFoundException {
+	public GitFileFileSystem getFileSystemFromGitDir(Path gitDir) throws FileSystemNotFoundException {
 		return fses.getFileSystemFromGitDir(gitDir);
 	}
 
 	@Override
-	public GitDfsFileSystemImpl getFileSystemFromRepositoryName(String name) throws FileSystemNotFoundException {
+	public GitDfsFileSystem getFileSystemFromRepositoryName(String name) throws FileSystemNotFoundException {
 		return fses.getFileSystemFromName(name);
 	}
 
@@ -350,6 +350,7 @@ public class GitFileSystemProviderImpl extends GitFileSystemProvider {
 		throw new UnsupportedOperationException();
 	}
 
+	@Deprecated
 	@Override
 	public void setAttribute(Path path, String attribute, Object value, LinkOption... options)
 			throws ReadOnlyFileSystemException {

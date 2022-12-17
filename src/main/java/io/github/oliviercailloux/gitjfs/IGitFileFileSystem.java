@@ -3,7 +3,15 @@ package io.github.oliviercailloux.gitjfs;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemProviderImpl;
 import java.net.URI;
 import java.nio.file.Path;
+import org.eclipse.jgit.internal.storage.file.FileRepository;
 
+/**
+ * A git file system that obtains its commit data by reading from a git
+ * directory.
+ *
+ * @see IGitFileSystemProvider#newFileSystemFromGitDir(Path)
+ * @see IGitFileSystemProvider#newFileSystemFromFileRepository(FileRepository)
+ */
 public interface IGitFileFileSystem extends IGitFileSystem {
 
 	/**

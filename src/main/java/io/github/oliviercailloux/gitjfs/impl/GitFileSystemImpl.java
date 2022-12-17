@@ -64,7 +64,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class GitFileSystemImpl extends GitFileSystem {
+class GitFileSystemImpl extends GitFileSystem {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitFileSystemImpl.class);
 
@@ -836,11 +836,6 @@ public abstract class GitFileSystemImpl extends GitFileSystem {
 			} catch (RuntimeException e) {
 				closeExceptions.add(e);
 			}
-		}
-		try {
-			provider().getGitFileSystems().hasBeenClosedEvent(this);
-		} catch (RuntimeException e) {
-			closeExceptions.add(e);
 		}
 		if (!closeExceptions.isEmpty()) {
 			final RuntimeException first = closeExceptions.remove(0);

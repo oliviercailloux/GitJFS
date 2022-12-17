@@ -8,6 +8,9 @@ import static io.github.oliviercailloux.jaris.exceptions.Unchecker.URI_UNCHECKER
 import com.google.common.base.VerifyException;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import io.github.oliviercailloux.gitjfs.GitDfsFileSystem;
+import io.github.oliviercailloux.gitjfs.GitFileFileSystem;
+import io.github.oliviercailloux.gitjfs.GitFileSystem;
 import java.net.URI;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemNotFoundException;
@@ -49,23 +52,14 @@ class GitFileSystems {
 		}
 	}
 
-	String getExistingUniqueId(GitFileSystemImpl gitFs) {
-		if (gitFs instanceof GitFileFileSystemImpl) {
-			final GitFileFileSystemImpl gitFileFs = (GitFileFileSystemImpl) gitFs;
-			final Path path = cachedFileFileSystems.inverse().get(gitFileFs);
-			checkArgument(path != null);
-			verify(path.isAbsolute());
-			return path.toString();
-		}
+	String getExistingUniqueId(GitFileSystem gitFs) {
+		/* FIXME */
+		final BiMap<?, ? extends GitFileSystem> cachedSystems = cachedSystems(gitFs);
 
-		if (gitFs instanceof GitDfsFileSystemImpl) {
-			final GitDfsFileSystemImpl gitDfsFs = (GitDfsFileSystemImpl) gitFs;
-			final String id = cachedDfsFileSystems.inverse().get(gitDfsFs);
-			checkArgument(id != null);
-			return id;
-		}
-
-		throw new IllegalArgumentException("Unknown repository type.");
+		@SuppressWarnings("unlikely-arg-type")
+		final Object key = cachedSystems.inverse().get(gitFs);
+		checkArgument(key != null);
+		return key.toString();
 	}
 
 	/**
@@ -111,11 +105,11 @@ class GitFileSystems {
 		switch (authority) {
 		case FILE_AUTHORITY:
 			final Path gitDir = getGitDir(gitUri);
-			fs = getFileSystemFromGitDir(gitDir);
+			fs = getFileSystemFromGitDir(gitDir).delegate();
 			break;
 		case DFS_AUTHORITY:
 			final String name = getRepositoryName(gitUri);
-			fs = getFileSystemFromName(name);
+			fs = getFileSystemFromName(name).delegate();
 			break;
 		default:
 			throw new VerifyException();
@@ -138,9 +132,16 @@ class GitFileSystems {
 		return cachedDfsFileSystems.get(name);
 	}
 
-	public URI toUri(GitFileSystemImpl gitFs) {
-		if (gitFs instanceof GitFileFileSystemImpl) {
-			final GitFileFileSystemImpl gitFileFs = (GitFileFileSystemImpl) gitFs;
+	public URI toUri(GitFileFileSystem gitFs) {
+		return toUriImpl(gitFs);
+	}
+
+	public URI toUri(GitDfsFileSystem gitFs) {
+		return toUriImpl(gitFs);
+	}
+
+	private URI toUriImpl(GitFileSystem gitFs) {
+		if (gitFs instanceof GitFileFileSystem gitFileFs) {
 			final Path gitDir = gitFileFs.getGitDir();
 			final String pathStr = gitDir.toAbsolutePath().toString();
 			final String pathStrSlash = pathStr.endsWith("/") ? pathStr : pathStr + "/";
@@ -148,8 +149,8 @@ class GitFileSystems {
 					.getUsing(() -> new URI(GitFileSystemProviderImpl.SCHEME, FILE_AUTHORITY, pathStrSlash, null));
 		}
 
-		if (gitFs instanceof GitDfsFileSystemImpl) {
-			final GitDfsFileSystemImpl gitDfsFs = (GitDfsFileSystemImpl) gitFs;
+		if (gitFs instanceof GitDfsFileSystem gitDfsFs) {
+			@SuppressWarnings("resource")
 			final String name = getName(gitDfsFs.getRepository());
 			verifyNotNull(name);
 			/**
@@ -161,7 +162,8 @@ class GitFileSystems {
 			 * treat them as segment separators: if the user used slashes in the repository
 			 * name, it might well be with the intent of separating segments.
 			 */
-			return URI_UNCHECKER.getUsing(() -> new URI(GitFileSystemProviderImpl.SCHEME, DFS_AUTHORITY, "/" + name, null));
+			return URI_UNCHECKER
+					.getUsing(() -> new URI(GitFileSystemProviderImpl.SCHEME, DFS_AUTHORITY, "/" + name, null));
 		}
 
 		throw new IllegalArgumentException("Unknown repository type.");
@@ -177,24 +179,38 @@ class GitFileSystems {
 		cachedFileFileSystems.put(gitDir.toAbsolutePath(), newFs);
 	}
 
+	@SuppressWarnings("resource")
 	public void put(DfsRepository dfsRespository, GitDfsFileSystemImpl newFs) {
 		verifyCanCreateFileSystemCorrespondingTo(dfsRespository);
 		cachedDfsFileSystems.put(getName(dfsRespository), newFs);
 	}
 
-	void hasBeenClosedEvent(GitFileSystemImpl gitFs) {
-		if (gitFs instanceof GitFileFileSystemImpl) {
-			final GitFileFileSystemImpl gitFileFs = (GitFileFileSystemImpl) gitFs;
-			LOGGER.debug("Removing {} from {}.", gitFileFs, cachedFileFileSystems);
-			final BiMap<GitFileFileSystemImpl, Path> inverse = cachedFileFileSystems.inverse();
-			final Path path = inverse.remove(gitFileFs);
-			checkArgument(path != null, inverse.keySet().toString());
-		} else if (gitFs instanceof GitDfsFileSystemImpl) {
-			final GitDfsFileSystemImpl gitDfsFs = (GitDfsFileSystemImpl) gitFs;
-			final String id = cachedDfsFileSystems.inverse().remove(gitDfsFs);
-			checkArgument(id != null);
+	void hasBeenClosedEvent(GitFileFileSystemImpl gitFs) {
+		hasBeenClosedEventImpl(gitFs);
+	}
+
+	void hasBeenClosedEvent(GitDfsFileSystemImpl gitFs) {
+		hasBeenClosedEventImpl(gitFs);
+	}
+
+	private void hasBeenClosedEventImpl(GitFileSystem gitFs) {
+		final BiMap<?, ? extends GitFileSystem> cachedSystems = cachedSystems(gitFs);
+		LOGGER.debug("Removing {} from {}.", gitFs, cachedSystems);
+		final BiMap<? extends GitFileSystem, ?> inverse = cachedSystems.inverse();
+		@SuppressWarnings("unlikely-arg-type")
+		final Object key = inverse.remove(gitFs);
+		checkArgument(key != null, inverse.keySet().toString());
+	}
+
+	private BiMap<?, ? extends GitFileSystem> cachedSystems(GitFileSystem gitFs) {
+		final BiMap<?, ? extends GitFileSystem> cachedSystems;
+		if (gitFs instanceof GitFileFileSystemImpl gitFileFs) {
+			cachedSystems = cachedFileFileSystems;
+		} else if (gitFs instanceof GitDfsFileSystemImpl gitDfsFs) {
+			cachedSystems = cachedDfsFileSystems;
 		} else {
 			throw new IllegalArgumentException("Unknown repository type.");
 		}
+		return cachedSystems;
 	}
 }

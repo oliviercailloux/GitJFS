@@ -2,7 +2,6 @@ package io.github.oliviercailloux.gitjfs;
 
 import io.github.oliviercailloux.gitjfs.impl.GitDfsFileSystemImpl;
 import io.github.oliviercailloux.gitjfs.impl.GitFileFileSystemImpl;
-import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemProviderImpl;
 import io.github.oliviercailloux.gitjfs.impl.GitPathImpl;
 import java.io.IOException;
@@ -88,7 +87,7 @@ public interface IGitFileSystemProvider {
 	 *                                          access to the underlying file
 	 *                                          system.
 	 */
-	IGitFileFileSystem newFileSystem(URI gitFsUri)
+	GitFileFileSystem newFileSystem(URI gitFsUri)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, NoSuchFileException, IOException;
 
 	/**
@@ -100,7 +99,7 @@ public interface IGitFileSystemProvider {
 	 *             {@link #newFileSystem(URI)}.
 	 */
 	@Deprecated
-	IGitFileFileSystem newFileSystem(URI gitFsUri, Map<String, ?> env)
+	GitFileFileSystem newFileSystem(URI gitFsUri, Map<String, ?> env)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, NoSuchFileException, IOException;
 
 	/**
@@ -113,7 +112,7 @@ public interface IGitFileSystemProvider {
 	 *             {@link #newFileSystemFromGitDir(Path)}.
 	 */
 	@Deprecated
-	IGitFileFileSystem newFileSystem(Path gitDir, Map<String, ?> env)
+	GitFileFileSystem newFileSystem(Path gitDir, Map<String, ?> env)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, NoSuchFileException, IOException;
 
 	/**
@@ -148,7 +147,7 @@ public interface IGitFileSystemProvider {
 	 *                                          access to the underlying file
 	 *                                          system.
 	 */
-	IGitFileFileSystem newFileSystemFromGitDir(Path gitDir)
+	GitFileFileSystem newFileSystemFromGitDir(Path gitDir)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, NoSuchFileException, IOException;
 
 	/**
@@ -174,7 +173,7 @@ public interface IGitFileSystemProvider {
 	 * @throws IOException                      if an exception occurred during
 	 *                                          access to the underlying data.
 	 */
-	IGitFileSystem newFileSystemFromRepository(Repository repository)
+	GitFileSystem newFileSystemFromRepository(Repository repository)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, IOException;
 
 	/**
@@ -200,7 +199,7 @@ public interface IGitFileSystemProvider {
 	 * @throws IOException                      if an exception occurred during
 	 *                                          access to the underlying data.
 	 */
-	IGitFileFileSystem newFileSystemFromFileRepository(FileRepository repository)
+	GitFileFileSystem newFileSystemFromFileRepository(FileRepository repository)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException, IOException;
 
 	/**
@@ -223,7 +222,7 @@ public interface IGitFileSystemProvider {
 	 * @throws UnsupportedOperationException    if the repository contains no git
 	 *                                          data.
 	 */
-	IGitDfsFileSystem newFileSystemFromDfsRepository(DfsRepository repository)
+	GitDfsFileSystem newFileSystemFromDfsRepository(DfsRepository repository)
 			throws FileSystemAlreadyExistsException, UnsupportedOperationException;
 
 	/**
