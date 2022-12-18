@@ -17,6 +17,8 @@ import com.google.common.graph.ImmutableGraph;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import io.github.oliviercailloux.gitjfs.GitFileSystem;
+import io.github.oliviercailloux.gitjfs.GitPathRootRef;
+import io.github.oliviercailloux.gitjfs.GitPathRootSha;
 import io.github.oliviercailloux.gitjfs.PathCouldNotBeFoundException;
 import io.github.oliviercailloux.jaris.collections.GraphUtils;
 import java.io.IOException;
@@ -466,7 +468,7 @@ class GitFileSystemImpl extends GitFileSystem {
 	}
 
 	@Override
-	public ImmutableGraph<GitPathRootShaImpl> getCommitsGraph() throws UncheckedIOException {
+	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws UncheckedIOException {
 		final ImmutableSet<ObjectId> commits = getCommits();
 		final ImmutableSet<GitPathRootShaImpl> paths = commits.stream().map(this::getPathRoot)
 				.collect(ImmutableSet.toImmutableSet());
@@ -478,7 +480,7 @@ class GitFileSystemImpl extends GitFileSystem {
 	}
 
 	@Override
-	public ImmutableSet<GitPathRootRefImpl> getRefs() throws IOException {
+	public ImmutableSet<GitPathRootRef> getRefs() throws IOException {
 		if (!isOpen) {
 			throw new ClosedFileSystemException();
 		}

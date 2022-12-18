@@ -14,7 +14,6 @@ import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.Set;
 import org.eclipse.jgit.lib.ObjectId;
 
-@SuppressWarnings("resource")
 public abstract class ForwardingGitFileSystem extends GitFileSystem {
 	protected abstract GitFileSystem delegate();
 
@@ -67,13 +66,13 @@ public abstract class ForwardingGitFileSystem extends GitFileSystem {
 	}
 
 	@Override
-	public ImmutableGraph<? extends GitPathRootSha> getCommitsGraph() throws UncheckedIOException {
+	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws UncheckedIOException {
 		final IGitFileSystem delegate = delegate();
 		return delegate.getCommitsGraph();
 	}
 
 	@Override
-	public ImmutableSet<? extends GitPathRootRef> getRefs() throws IOException {
+	public ImmutableSet<GitPathRootRef> getRefs() throws IOException {
 		final IGitFileSystem delegate = delegate();
 		return delegate.getRefs();
 	}

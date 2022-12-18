@@ -73,13 +73,13 @@ public abstract class ForwardingGitFileFileSystem extends GitFileFileSystem {
 	}
 
 	@Override
-	public ImmutableGraph<? extends GitPathRootSha> getCommitsGraph() throws UncheckedIOException {
+	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws UncheckedIOException {
 		final IGitFileFileSystem delegate = delegate();
 		return delegate.getCommitsGraph();
 	}
 
 	@Override
-	public ImmutableSet<? extends GitPathRootRef> getRefs() throws IOException {
+	public ImmutableSet<GitPathRootRef> getRefs() throws IOException {
 		final IGitFileFileSystem delegate = delegate();
 		return delegate.getRefs();
 	}

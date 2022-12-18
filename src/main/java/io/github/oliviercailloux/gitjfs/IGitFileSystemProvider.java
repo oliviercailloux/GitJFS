@@ -34,19 +34,6 @@ import org.eclipse.jgit.lib.Repository;
 
 public interface IGitFileSystemProvider {
 
-	/**
-	 * Obtains the same instance as the one reachable through the
-	 * {@link FileSystemProvider#installedProviders() installed providers}. Calling
-	 * this method causes the default provider to be initialized (if not already
-	 * initialized) and loads any other installed providers as described by the
-	 * {@link FileSystems} class.
-	 *
-	 * @return the instance of this class registered for this scheme.
-	 */
-	public static GitFileSystemProvider provider() {
-		return GitFileSystemProviderImpl.getInstance();
-	}
-
 	String getScheme();
 
 	/**

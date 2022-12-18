@@ -212,7 +212,7 @@ public interface IGitFileSystem extends AutoCloseable {
 	 *                              variant to mimic the behavior of
 	 *                              {@link #getRootDirectories()})
 	 */
-	ImmutableGraph<? extends GitPathRootSha> getCommitsGraph() throws UncheckedIOException;
+	ImmutableGraph<GitPathRootSha> getCommitsGraph() throws UncheckedIOException;
 
 	/**
 	 * Returns a set containing one git path root for each git ref (of the form
@@ -223,7 +223,7 @@ public interface IGitFileSystem extends AutoCloseable {
 	 *
 	 * @throws IOException if an I/O error occurs
 	 */
-	ImmutableSet<? extends GitPathRootRef> getRefs() throws IOException;
+	ImmutableSet<GitPathRootRef> getRefs() throws IOException;
 
 	/**
 	 * Returns a {@code PathMatcher} that performs match operations on the
