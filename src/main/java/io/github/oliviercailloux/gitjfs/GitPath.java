@@ -1,7 +1,6 @@
 package io.github.oliviercailloux.gitjfs;
 
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemProviderImpl;
-import io.github.oliviercailloux.gitjfs.impl.GitPathImpl;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
@@ -153,6 +152,9 @@ import org.eclipse.jgit.lib.Ref;
  * Whenever you need to convert a relative path to an absolute path, I advice to
  * use an explicit absolute path (using explicity the branch {@code main} if
  * desired) and resolve your relative path against this explicit absolute path.
+ * <p>
+ * Equality is driven by the {@link Path#equals(Object)} contract, which
+ * requires equality of the file system.
  */
 public interface GitPath extends Path {
 
@@ -417,7 +419,7 @@ public interface GitPath extends Path {
 	 *                           system can’t be accessed
 	 */
 	@Override
-	Path toRealPath(LinkOption... options) throws IOException, PathCouldNotBeFoundException, NoSuchFileException;
+	GitPath toRealPath(LinkOption... options) throws IOException, PathCouldNotBeFoundException, NoSuchFileException;
 
 	/**
 	 * Compares path according to their string form. The spec mandates
@@ -440,13 +442,12 @@ public interface GitPath extends Path {
 	 * are both absent) and internal paths. The internal paths are compared in a
 	 * case-sensitive way (conforming to the Linux concept of path equality).
 	 * Equivalently, two git paths are equal iff they are associated to the same git
-	 * file system and have the same {@link GitPathImpl string forms}.
+	 * file system and have the same {@link GitPath string forms}.
 	 *
 	 * <p>
 	 * This method does not access the file system and the files are not required to
 	 * exist.
 	 *
-	 * @see Files#isSameFile(Path, Path) (TODO)
 	 */
 	@Override
 	boolean equals(Object o2);
@@ -455,7 +456,7 @@ public interface GitPath extends Path {
 	int hashCode();
 
 	/**
-	 * Returns the {@link GitPathImpl string form} of this path.
+	 * Returns the {@link GitPath string form} of this path.
 	 *
 	 * <p>
 	 * If this path was created by converting a path string using the

@@ -12,7 +12,6 @@ import io.github.oliviercailloux.gitjfs.GitPathRoot;
 import io.github.oliviercailloux.gitjfs.GitPathRootRef;
 import io.github.oliviercailloux.gitjfs.GitPathRootSha;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.FileStore;
 import java.nio.file.InvalidPathException;
@@ -95,7 +94,7 @@ public class GitDfsFileSystemImpl extends GitDfsFileSystem {
 	}
 
 	@Override
-	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws UncheckedIOException {
+	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws IOException {
 		return delegate.getCommitsGraph();
 	}
 
@@ -131,7 +130,7 @@ public class GitDfsFileSystemImpl extends GitDfsFileSystem {
 	}
 
 	@Override
-	public Iterable<Path> getRootDirectories() {
+	public ImmutableSet<Path> getRootDirectories() {
 		return delegate.getRootDirectories();
 	}
 

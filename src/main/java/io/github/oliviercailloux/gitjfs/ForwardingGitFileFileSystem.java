@@ -3,7 +3,6 @@ package io.github.oliviercailloux.gitjfs;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.graph.ImmutableGraph;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.FileStore;
 import java.nio.file.InvalidPathException;
@@ -73,7 +72,7 @@ public abstract class ForwardingGitFileFileSystem extends GitFileFileSystem {
 	}
 
 	@Override
-	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws UncheckedIOException {
+	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws IOException {
 		final IGitFileFileSystem delegate = delegate();
 		return delegate.getCommitsGraph();
 	}
@@ -114,7 +113,7 @@ public abstract class ForwardingGitFileFileSystem extends GitFileFileSystem {
 	}
 
 	@Override
-	public Iterable<Path> getRootDirectories() {
+	public ImmutableSet<Path> getRootDirectories() {
 		final IGitFileFileSystem delegate = delegate();
 		return delegate.getRootDirectories();
 	}

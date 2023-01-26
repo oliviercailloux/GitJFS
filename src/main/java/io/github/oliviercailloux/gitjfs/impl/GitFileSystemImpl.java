@@ -468,11 +468,14 @@ class GitFileSystemImpl extends GitFileSystem {
 	}
 
 	@Override
-	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws UncheckedIOException {
+	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws IOException {
 		final ImmutableSet<ObjectId> commits = getCommits();
 		final ImmutableSet<GitPathRootShaImpl> paths = commits.stream().map(this::getPathRoot)
 				.collect(ImmutableSet.toImmutableSet());
 
+		// FIXME
+//		final TFunction<GitPathRootShaImpl, List<GitPathRootShaImpl>> getParents = Unchecker.<NoSuchFileException, VerifyException>wrappingWith(VerifyException::new)
+//				.wrapFunction(p -> p.getParentCommits());
 		final Function<GitPathRootShaImpl, List<GitPathRootShaImpl>> getParents = IO_UNCHECKER
 				.wrapFunction(p -> p.getParentCommits());
 

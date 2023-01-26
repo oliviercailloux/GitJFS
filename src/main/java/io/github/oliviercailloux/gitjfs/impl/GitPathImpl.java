@@ -18,7 +18,6 @@ import java.net.URI;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
@@ -581,47 +580,20 @@ public abstract class GitPathImpl implements GitPath {
 		return COMPARATOR.compare(this, p2);
 	}
 
-	/**
-	 * Tests this path for equality with the given object.
-	 *
-	 * <p>
-	 * This method returns {@code true} iff the given object is a git path, their
-	 * git file systems are equal, and the paths have equal root components (or they
-	 * are both absent) and internal paths. The internal paths are compared in a
-	 * case-sensitive way (conforming to the Linux concept of path equality).
-	 * Equivalently, two git paths are equal iff they are associated to the same git
-	 * file system and have the same {@link GitPathImpl string forms}.
-	 *
-	 * <p>
-	 * This method does not access the file system and the files are not required to
-	 * exist.
-	 *
-	 * @see Files#isSameFile(Path, Path) (TODO)
-	 */
 	@Override
 	public boolean equals(Object o2) {
-		if (!(o2 instanceof GitPathImpl)) {
+		if (!(o2 instanceof GitPath)) {
 			return false;
 		}
-		final GitPathImpl p2 = (GitPathImpl) o2;
-		return Objects.equals(toAbsolutePath().getRoot().toStaticRev(), p2.toAbsolutePath().getRoot().toStaticRev())
-				&& getInternalPath().equals(p2.getInternalPath());
+		final GitPath p2 = (GitPath) o2;
+		return getFileSystem().equals(p2.getFileSystem()) && toString().equals(p2.toString());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(getFileSystem(), getRoot() == null ? null : getRoot().toStaticRev(), getInternalPath());
+		return Objects.hash(getFileSystem(), toString());
 	}
 
-	/**
-	 * Returns the {@link GitPathImpl string form} of this path.
-	 *
-	 * <p>
-	 * If this path was created by converting a path string using the
-	 * {@link FileSystem#getPath getPath} method then the path string returned by
-	 * this method may differ from the original String used to create the path.
-	 *
-	 */
 	@Override
 	public String toString() {
 		final String rootStr = getRoot() == null ? "" : getRoot().toStaticRev().toString();
