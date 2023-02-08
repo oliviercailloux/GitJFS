@@ -488,7 +488,7 @@ class GitFileSystemImpl extends GitFileSystem {
 	}
 
 	@Override
-	public ImmutableSet<GitPathRootRef> getRefs() throws IOException {
+	public ImmutableSet<GitPathRootRef> refs() throws IOException {
 		if (!isOpen) {
 			throw new ClosedFileSystemException();
 		}

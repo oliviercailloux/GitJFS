@@ -245,7 +245,7 @@ public interface IGitFileSystem extends AutoCloseable {
 	 *
 	 * @throws IOException if an I/O error occurs
 	 */
-	ImmutableSet<GitPathRootRef> getRefs() throws IOException;
+	ImmutableSet<GitPathRootRef> refs() throws IOException;
 
 	/**
 	 * Returns a {@code PathMatcher} that performs match operations on the

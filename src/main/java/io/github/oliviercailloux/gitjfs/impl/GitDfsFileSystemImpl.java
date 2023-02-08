@@ -100,8 +100,8 @@ public class GitDfsFileSystemImpl extends GitDfsFileSystem {
 	}
 
 	@Override
-	public ImmutableSet<GitPathRootRef> getRefs() throws IOException {
-		return delegate.getRefs();
+	public ImmutableSet<GitPathRootRef> refs() throws IOException {
+		return delegate.refs();
 	}
 
 	@Override

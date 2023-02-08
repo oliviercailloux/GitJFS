@@ -78,9 +78,9 @@ public abstract class ForwardingGitFileFileSystem extends GitFileFileSystem {
 	}
 
 	@Override
-	public ImmutableSet<GitPathRootRef> getRefs() throws IOException {
+	public ImmutableSet<GitPathRootRef> refs() throws IOException {
 		final IGitFileFileSystem delegate = delegate();
-		return delegate.getRefs();
+		return delegate.refs();
 	}
 
 	@Override
