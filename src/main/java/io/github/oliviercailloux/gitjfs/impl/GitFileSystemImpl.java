@@ -17,6 +17,7 @@ import com.google.common.graph.ImmutableGraph;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import io.github.oliviercailloux.gitjfs.GitFileSystem;
+import io.github.oliviercailloux.gitjfs.GitPathRoot;
 import io.github.oliviercailloux.gitjfs.GitPathRootRef;
 import io.github.oliviercailloux.gitjfs.GitPathRootSha;
 import io.github.oliviercailloux.gitjfs.PathCouldNotBeFoundException;
@@ -48,6 +49,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.AnyObjectId;
@@ -61,6 +65,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.slf4j.Logger;
@@ -809,6 +814,23 @@ class GitFileSystemImpl extends GitFileSystem {
 		final ObjectId possibleCommitId = ref.getObjectId();
 		verifyNotNull(possibleCommitId);
 		return Optional.of(possibleCommitId);
+	}
+
+	@Override
+	public ImmutableSet<DiffEntry> getDiff(GitPathRoot first, GitPathRoot second)
+			throws IOException, NoSuchFileException {
+		/* TODO check same fs. */
+		final CanonicalTreeParser firstTreeIter = new CanonicalTreeParser();
+		firstTreeIter.reset(reader, getRevCommit(first.getCommit().id()).getTree().getId());
+		final CanonicalTreeParser secondTreeIter = new CanonicalTreeParser();
+		secondTreeIter.reset(reader, getRevCommit(second.getCommit().id()).getTree().getId());
+
+		try (Git git = new Git(repository)) {
+			final List<DiffEntry> diff = git.diff().setNewTree(secondTreeIter).setOldTree(firstTreeIter).call();
+			return ImmutableSet.copyOf(diff);
+		} catch (GitAPIException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	void toClose(DirectoryStream<GitPathImpl> stream) {

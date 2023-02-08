@@ -21,6 +21,7 @@ import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.Set;
+import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.ObjectId;
 
 /**
@@ -524,6 +525,8 @@ public interface IGitFileSystem extends AutoCloseable {
 	 *         views
 	 */
 	Set<String> supportedFileAttributeViews();
+
+	public ImmutableSet<DiffEntry> getDiff(GitPathRoot first, GitPathRoot second) throws IOException;
 
 	/**
 	 * Closes this file system.

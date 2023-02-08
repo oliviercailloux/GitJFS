@@ -11,6 +11,7 @@ import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.Set;
+import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.ObjectId;
 
 public abstract class ForwardingGitFileSystem extends GitFileSystem {
@@ -139,6 +140,12 @@ public abstract class ForwardingGitFileSystem extends GitFileSystem {
 	public WatchService newWatchService() throws IOException {
 		final IGitFileSystem delegate = delegate();
 		return delegate.newWatchService();
+	}
+
+	@Override
+	public ImmutableSet<DiffEntry> getDiff(GitPathRoot first, GitPathRoot second) throws IOException {
+		final IGitFileSystem delegate = delegate();
+		return delegate.getDiff(first, second);
 	}
 
 }
