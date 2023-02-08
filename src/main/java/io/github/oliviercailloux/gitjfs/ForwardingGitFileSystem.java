@@ -143,9 +143,9 @@ public abstract class ForwardingGitFileSystem extends GitFileSystem {
 	}
 
 	@Override
-	public ImmutableSet<DiffEntry> getDiff(GitPathRoot first, GitPathRoot second) throws IOException {
+	public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException {
 		final IGitFileSystem delegate = delegate();
-		return delegate.getDiff(first, second);
+		return delegate.diff(first, second);
 	}
 
 }

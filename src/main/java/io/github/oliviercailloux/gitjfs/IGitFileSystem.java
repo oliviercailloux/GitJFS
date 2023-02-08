@@ -526,7 +526,7 @@ public interface IGitFileSystem extends AutoCloseable {
 	 */
 	Set<String> supportedFileAttributeViews();
 
-	public ImmutableSet<DiffEntry> getDiff(GitPathRoot first, GitPathRoot second) throws IOException;
+	public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException;
 
 	/**
 	 * Closes this file system.

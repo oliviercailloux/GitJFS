@@ -817,7 +817,7 @@ class GitFileSystemImpl extends GitFileSystem {
 	}
 
 	@Override
-	public ImmutableSet<DiffEntry> getDiff(GitPathRoot first, GitPathRoot second)
+	public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second)
 			throws IOException, NoSuchFileException {
 		/* TODO check same fs. */
 		final CanonicalTreeParser firstTreeIter = new CanonicalTreeParser();

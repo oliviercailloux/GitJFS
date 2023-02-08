@@ -161,8 +161,8 @@ public class GitDfsFileSystemImpl extends GitDfsFileSystem {
 	}
 
 	@Override
-	public ImmutableSet<DiffEntry> getDiff(GitPathRoot first, GitPathRoot second) throws IOException {
-		return delegate.getDiff(first, second);
+	public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException {
+		return delegate.diff(first, second);
 	}
 
 }
