@@ -76,7 +76,7 @@ class GitFileSystemCreationAndUriTests {
 			assertFalse(repository.getRefDatabase().hasRefs());
 			try (IGitDfsFileSystem gitFs = GitFileSystemProviderImpl.getInstance()
 					.newFileSystemFromDfsRepository(repository)) {
-				assertEquals(GraphBuilder.directed().build(), gitFs.getCommitsGraph());
+				assertEquals(GraphBuilder.directed().build(), gitFs.graph());
 			}
 		}
 	}

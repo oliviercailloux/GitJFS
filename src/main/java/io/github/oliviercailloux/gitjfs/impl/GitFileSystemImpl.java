@@ -473,7 +473,7 @@ class GitFileSystemImpl extends GitFileSystem {
 	}
 
 	@Override
-	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws IOException {
+	public ImmutableGraph<GitPathRootSha> graph() throws IOException {
 		final ImmutableSet<ObjectId> commits = getCommits();
 		final ImmutableSet<GitPathRootShaImpl> paths = commits.stream().map(this::getPathRoot)
 				.collect(ImmutableSet.toImmutableSet());

@@ -382,7 +382,7 @@ public class GitReadTests {
 					.newFileSystemFromDfsRepository(repository)) {
 				final Function<? super ObjectId, GitPathRootSha> oToP = gitFs::getPathRoot;
 				LOGGER.debug("Commits: {}.", commits);
-				assertEquals(toGraph(commits, oToP), gitFs.getCommitsGraph());
+				assertEquals(toGraph(commits, oToP), gitFs.graph());
 			}
 		}
 		try (DfsRepository repository = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
@@ -390,7 +390,7 @@ public class GitReadTests {
 			try (GitFileSystem gitFs = GitFileSystemProviderImpl.getInstance()
 					.newFileSystemFromDfsRepository(repository)) {
 				final Function<? super ObjectId, GitPathRootSha> oToP = gitFs::getPathRoot;
-				assertEquals(toGraph(commits, oToP), gitFs.getCommitsGraph());
+				assertEquals(toGraph(commits, oToP), gitFs.graph());
 			}
 		}
 	}

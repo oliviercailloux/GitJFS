@@ -234,7 +234,7 @@ public interface IGitFileSystem extends AutoCloseable {
 	 * @return absolute path roots, all referring to commit ids (no ref).
 	 * @throws IOException if an I/O error occurs
 	 */
-	ImmutableGraph<GitPathRootSha> getCommitsGraph() throws IOException;
+	ImmutableGraph<GitPathRootSha> graph() throws IOException;
 
 	/**
 	 * Returns a set containing one git path root for each git ref (of the form

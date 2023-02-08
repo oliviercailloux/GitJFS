@@ -66,9 +66,9 @@ public abstract class ForwardingGitDfsFileSystem extends GitDfsFileSystem {
 	}
 
 	@Override
-	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws IOException {
+	public ImmutableGraph<GitPathRootSha> graph() throws IOException {
 		final IGitFileSystem delegate = delegate();
-		return delegate.getCommitsGraph();
+		return delegate.graph();
 	}
 
 	@Override

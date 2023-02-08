@@ -110,8 +110,8 @@ public class GitFileFileSystemImpl extends GitFileFileSystem {
 	}
 
 	@Override
-	public ImmutableGraph<GitPathRootSha> getCommitsGraph() throws IOException {
-		return delegate.getCommitsGraph();
+	public ImmutableGraph<GitPathRootSha> graph() throws IOException {
+		return delegate.graph();
 	}
 
 	@Override
