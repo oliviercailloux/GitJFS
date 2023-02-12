@@ -71,36 +71,37 @@ public class JGit {
 
 		final InMemoryRepository repository = new InMemoryRepository(new DfsRepositoryDescription("myrepo"));
 //		IO_UNCHECKER.call(() -> repository.create(true));
-		final ObjectDatabase objectDatabase = repository.getObjectDatabase();
+		try (ObjectDatabase objectDatabase = repository.getObjectDatabase()) {
 
-		final BiMap<Path, ObjectId> commitsBuilder = HashBiMap.create(baseDirs.nodes().size());
-		try (ObjectInserter inserter = objectDatabase.newInserter()) {
-			for (Path source : sources) {
-				LOGGER.debug("Visiting {}.", source);
-				final Set<Path> parentPaths = baseDirs.predecessors(source);
-				final ImmutableList<ObjectId> parents = parentPaths.stream().map(p -> commitsBuilder.get(p))
-						.collect(ImmutableSet.toImmutableSet()).asList();
-				final ObjectId oId = insertCommit(inserter, identities.get(source), source, parents, "First commit");
-				commitsBuilder.put(source, oId);
+			final BiMap<Path, ObjectId> commitsBuilder = HashBiMap.create(baseDirs.nodes().size());
+			try (ObjectInserter inserter = objectDatabase.newInserter()) {
+				for (Path source : sources) {
+					LOGGER.debug("Visiting {}.", source);
+					final Set<Path> parentPaths = baseDirs.predecessors(source);
+					final ImmutableList<ObjectId> parents = parentPaths.stream().map(p -> commitsBuilder.get(p))
+							.collect(ImmutableSet.toImmutableSet()).asList();
+					final ObjectId oId = insertCommit(inserter, identities.get(source), source, parents,
+							"First commit");
+					commitsBuilder.put(source, oId);
+				}
 			}
-		}
-		final ImmutableBiMap<Path, ObjectId> commits = ImmutableBiMap.copyOf(commitsBuilder);
+			final ImmutableBiMap<Path, ObjectId> commits = ImmutableBiMap.copyOf(commitsBuilder);
 
-		for (Path link : Files.find(links, 10, (p, a) -> true).filter(p -> !Files.isDirectory(p))
-				.collect(ImmutableSet.toImmutableSet())) {
-			final Path targetPath = Files.readSymbolicLink(link);
-			final ObjectId targetId = commits.get(targetPath);
-			final Path relativeLinkName = links.relativize(link);
-			LOGGER.debug("Linking {} to {}.", relativeLinkName, targetPath);
-			final RefUpdate update = repository.getRefDatabase().newUpdate(relativeLinkName.toString(), false);
-			update.setNewObjectId(targetId);
-			update.setExpectedOldObjectId(ObjectId.zeroId());
-			final Result result = update.update();
-			checkState(result.equals(Result.NEW));
+			for (Path link : Files.find(links, 10, (p, a) -> true).filter(p -> !Files.isDirectory(p))
+					.collect(ImmutableSet.toImmutableSet())) {
+				final Path targetPath = Files.readSymbolicLink(link);
+				final ObjectId targetId = commits.get(targetPath);
+				final Path relativeLinkName = links.relativize(link);
+				LOGGER.debug("Linking {} to {}.", relativeLinkName, targetPath);
+				final RefUpdate update = repository.getRefDatabase().newUpdate(relativeLinkName.toString(), false);
+				update.setNewObjectId(targetId);
+				update.setExpectedOldObjectId(ObjectId.zeroId());
+				final Result result = update.update();
+				checkState(result.equals(Result.NEW));
 //			Git.wrap(repository).branchCreate().setName("origin/" + link.getFileName().toString())
 //					.setStartPoint(targetId.getName()).call();
+			}
 		}
-		objectDatabase.close();
 
 		return repository;
 	}
