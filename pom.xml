@@ -10,7 +10,21 @@
 	<version>0.0.2-SNAPSHOT</version>
 	<name>GitJFS</name>
 	<url>https://github.com/oliviercailloux/GitJFS</url>
-
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<configuration>
+							<failOnWarnings>false</failOnWarnings>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 	<dependencies>
 		<dependency>
 			<groupId>io.github.oliviercailloux</groupId>
