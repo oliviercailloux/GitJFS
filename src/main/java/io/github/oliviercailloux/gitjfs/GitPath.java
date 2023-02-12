@@ -15,19 +15,19 @@ import org.eclipse.jgit.lib.Ref;
  * A git path has an optional root component and a (possibly empty) sequence of
  * names (strings). It is also associated to a git file system.
  *
- * <h1>Corresponding commit</h1>
+ * <h2>Corresponding commit</h2>
  * <p>
  * The root component, if it is present, represents a commit. It consists in
- * either a git reference (a string which must start with <tt>refs/</tt>, such
- * as <tt>refs/heads/main</tt>) or a commit id (represented as an
+ * either a git reference (a string which must start with <code>refs/</code>,
+ * such as <code>refs/heads/main</code>) or a commit id (represented as an
  * {@link ObjectId}).
  * <p>
  * This path is absolute iff the root component is present.
  * <p>
- * Relative paths implicitly refer to the branch <tt>main</tt>.
+ * Relative paths implicitly refer to the branch <code>main</code>.
  * </p>
  *
- * <h1>Internal path</h1>
+ * <h2>Internal path</h2>
  * <p>
  * The sequence of names represents a path inside a given commit. Each name is a
  * string that does not contain any slash. Names are not empty, except possibly
@@ -37,24 +37,24 @@ import org.eclipse.jgit.lib.Ref;
  * <p>
  * A git path is <em>empty</em> iff it has no root component and a single name
  * element which is the empty string. An empty path implicitly refers to the
- * root of the branch <tt>main</tt>.
+ * root of the branch <code>main</code>.
  * </p>
  *
- * <h1>String form</h1>
+ * <h2>String form</h2>
  * <p>
  * The string form of a path consists in the string form of its root component,
  * if it has one, followed by its internal path.
  * </p>
  * <ul>
- * <li>The string form of a root component is <tt>/gitref/</tt>, where
- * <tt>gitref</tt> is a git reference; or <tt>/sha1/</tt>, where <tt>sha1</tt>
- * is a commit id.</li>
+ * <li>The string form of a root component is <code>/gitref/</code>, where
+ * <code>gitref</code> is a git reference; or <code>/sha1/</code>, where
+ * <code>sha1</code> is a commit id.</li>
  * <li>Its internal path is a string that starts with a slash iff the path is
  * absolute, and is composed of the names that constitute its sequence of names,
  * separated by slashes.</li>
  * </ul>
  *
- * <h1>Possible cases</h1>
+ * <h2>Possible cases</h2>
  * <p>
  * It follows from these rules that an instance of this class matches exactly
  * one of these two cases (each admitting a special case).
@@ -63,51 +63,53 @@ import org.eclipse.jgit.lib.Ref;
  * <li>It has no root component. Equivalently, its string form contains no
  * leading slash. Equivalently, its string form contains no two consecutive
  * slashes. Equivalently, it is a relative path. It implies that its sequence of
- * names is not empty. An example of string form is {@code "some/path"}.</li>
+ * names is not empty. An example of string form is {@code "some/path"}.
  * <ul>
  * <li>As a special case, its sequence of names may consist in a unique empty
  * name. Equivalently, it is an empty path. Equivalently, its string form is
- * {@code ""}. Such a path implicitly refers to the branch <tt>main</tt> and the
- * root directory in that branch.</li>
+ * {@code ""}. Such a path implicitly refers to the branch <code>main</code> and
+ * the root directory in that branch.</li>
  * </ul>
+ * </li>
  * <li>It has a root component. Equivalently, its string form contains a leading
  * slash. Equivalently, its string form contains two consecutive slashes exactly
  * once. Equivalently, it is an absolute path. Implies that its sequence of
  * names contain no empty name. An example of string form is
- * {@code "/refs/heads/main//some/path"}.</li>
+ * {@code "/refs/heads/main//some/path"}.
  * <ul>
  * <li>As a special case, it may consist in a root component only, in other
  * words, have an empty sequence of names. Equivalently, its string form ends
  * with two slashes. An example of string form is
  * {@code "/refs/heads/main//"}.</li>
  * </ul>
+ * </li>
  * </ul>
  *
- * <h1>Extended discussion</h1>
+ * <h2>Extended discussion</h2>
  * <p>
  * The string form of the root component starts and ends with a slash, and
  * contains more slashes iff it is a git reference. It has typically the form
- * <tt>/refs/category/someref/</tt>, where <tt>category</tt> is <tt>tags</tt>,
- * <tt>heads</tt> or <tt>remotes</tt>, but may have
+ * <code>/refs/category/someref/</code>, where <code>category</code> is
+ * <code>tags</code>, <code>heads</code> or <code>remotes</code>, but may have
  * <a href="https://git-scm.com/docs/git-check-ref-format">other</a>
  * <a href="https://stackoverflow.com/a/47208574/">forms</a>. This class
- * requires that the git reference starts with <tt>refs/</tt>, does not end with
- * <tt>/</tt> and does not contain <tt>//</tt> or <tt>\</tt> (git also imposes
- * these restrictions on git references).
+ * requires that the git reference starts with <code>refs/</code>, does not end
+ * with <code>/</code> and does not contain <code>//</code> or <code>\</code>
+ * (git also imposes these restrictions on git references).
  * </p>
- * <h2>Rationale</h2>
+ * <h3>Rationale</h3>
  * <p>
- * The special git reference <tt>HEAD</tt> is not accepted for simplification:
- * <tt>HEAD</tt> may be a reference to a reference, which introduces annoying
- * exceptions. E.g. that a GitPathRoot is either a ref (a pointer to a commit)
- * starting with refs/ or a commit id would not be true any more if it could
- * also be <tt>HEAD</tt>. Another, weaker, reason for refusing <tt>HEAD</tt> is
- * that it makes sense mainly with respect to a
+ * The special git reference <code>HEAD</code> is not accepted for
+ * simplification: <code>HEAD</code> may be a reference to a reference, which
+ * introduces annoying exceptions. E.g. that a GitPathRoot is either a ref (a
+ * pointer to a commit) starting with refs/ or a commit id would not be true any
+ * more if it could also be <code>HEAD</code>. Another, weaker, reason for
+ * refusing <code>HEAD</code> is that it makes sense mainly with respect to a
  * <a href="https://git-scm.com/docs/gitglossary#def_working_tree">worktree</a>,
  * whereas this library is designed to read directly from the git directory,
  * independently of what happens in the worktree. This prevents, for example,
  * deciding that the default path of a git file system is the ref or commit
- * pointed by <tt>HEAD</tt>. This reason is weaker because bare repositories
+ * pointed by <code>HEAD</code>. This reason is weaker because bare repositories
  * <a href="https://stackoverflow.com/q/3301956/859604">use HEAD</a> to indicate
  * their default branch, showing that HEAD is not solely for use within a
  * worktree.
@@ -117,28 +119,28 @@ import org.eclipse.jgit.lib.Ref;
  * referring to commit ids dynamically. Also, {@code Ref} is more general than
  * what is called here a git ref.
  * <p>
- * The fact that the path <tt>/somegitref//</tt> is considered as a root
+ * The fact that the path <code>/somegitref//</code> is considered as a root
  * component only, thus with an empty sequence of names, can appear surprising.
  * Note first that slash is a path separator, thus cannot be part of a name. The
- * only other possible choice is thus to consider that <tt>/someref//</tt>
+ * only other possible choice is thus to consider that <code>/someref//</code>
  * contains a sequence of name of one element, being the empty string. An
  * advantage of this choice is that the sequence of names would be never empty
  * (thereby easing usage) and that it feels like a natural generalization of the
- * case of <tt>""</tt>, a path also containing one element being the empty
+ * case of <code>""</code>, a path also containing one element being the empty
  * string. But from the wording of {@link Path#getFileName()}, it seems like
  * that method should return null iff the path is a root component only, and
  * that what it should return is distinct from the root component. Note that the
  * Windows implementation <a href=
  * "https://github.com/openjdk/jdk/tree/450452bb8cb617682a3eb28ae651cb829a45dcc6/test/jdk/java/nio/file/Path/PathOps.java#L290">treats</a>
  * C:\ as a root component only, and returns {@code null} on
- * {@code getFileName()}. (And I believe that also under Windows, <tt>\</tt> is
- * considered a root component only, equivalently, an empty sequence of names.)
- * For sure, under Linux, <tt>/</tt> is a root component only. Thus, to behave
- * similarly, we have to return {@code null} to {@code getFileName()} on the
- * path <tt>/someref//</tt>, hence, to treat it as a root component only. (This
- * choice would also break the nice fact that the internal path in a git path
- * behaves like the sequence of names in a linux path, as <tt>/</tt> under Linux
- * is an empty sequence.)
+ * {@code getFileName()}. (And I believe that also under Windows, <code>\</code>
+ * is considered a root component only, equivalently, an empty sequence of
+ * names.) For sure, under Linux, <code>/</code> is a root component only. Thus,
+ * to behave similarly, we have to return {@code null} to {@code getFileName()}
+ * on the path <code>/someref//</code>, hence, to treat it as a root component
+ * only. (This choice would also break the nice fact that the internal path in a
+ * git path behaves like the sequence of names in a linux path, as
+ * <code>/</code> under Linux is an empty sequence.)
  * <p>
  * The Java FS API requires that relative paths be {@link Path#toAbsolutePath()
  * automatically convertible} to absolute paths. This is arguably not very
@@ -164,7 +166,7 @@ public interface GitPath extends Path {
 	 * <p>
 	 * If this path is already {@link Path#isAbsolute absolute} then this method
 	 * simply returns this path. Otherwise, this method returns a path with a root
-	 * component referring to the <tt>main</tt> branch.
+	 * component referring to the <code>main</code> branch.
 	 *
 	 * <p>
 	 * This method does not access the underlying file system and requires no
@@ -310,12 +312,12 @@ public interface GitPath extends Path {
 	 *
 	 * <p>
 	 * If the {@code other} parameter represents an {@link #isAbsolute() absolute}
-	 * path (equivalently, if it starts with a <tt>/</tt>), then this method returns
-	 * the git path represented by {@code other}. If {@code other} is an empty
-	 * string then this method trivially returns this path. Otherwise this method
-	 * considers this path to be a directory and resolves the given path against
-	 * this path: this method <em>joins</em> the given path to this path and returns
-	 * a resulting path that {@link #endsWith ends} with the given path.
+	 * path (equivalently, if it starts with a <code>/</code>), then this method
+	 * returns the git path represented by {@code other}. If {@code other} is an
+	 * empty string then this method trivially returns this path. Otherwise this
+	 * method considers this path to be a directory and resolves the given path
+	 * against this path: this method <em>joins</em> the given path to this path and
+	 * returns a resulting path that {@link #endsWith ends} with the given path.
 	 * <p>
 	 * This is equivalent to converting the given path string to a {@code Path} and
 	 * resolving it against this {@code Path} in the manner specified by the

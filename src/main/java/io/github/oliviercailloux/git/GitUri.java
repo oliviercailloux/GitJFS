@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 /**
  * An immutable location of a (local or remote) git repository.
  *
- * <h1>Recommended usage</h1>
+ * <h2>Recommended usage</h2>
  * <ol>
  * <li>Obtain an absolute, hierarchical URI that represents your git
  * repository.</li>
@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  * Git URL (except for the version with no authority). You can obtain a URI to a
  * local path with {@link Path#toUri()}.
  *
- * <h1>Obtaining an absolute hierarchical URI</h1>
+ * <h2>Obtaining an absolute hierarchical URI</h2>
  *
  * Any instance created by this class represents a Git repository location that
  * can be converted to an absolute hierarchical URI, even if the instance was
@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  * {@code file:///absolute/path} absolute hierarchical URI.</li>
  * </ul>
  *
- * <h1>Other possible uses</h1>
+ * <h2>Other possible uses</h2>
  *
  * You may create an instance on the basis of:
  * <ul>
@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
  * Git (see examples above).</li>
  * </ul>
  *
- * <h1>Rationale</h1>
+ * <h2>Rationale</h2>
  *
  * <dl>
  * <dt>Rejecting relative path Git URLs</dt>
@@ -89,7 +89,7 @@ import org.slf4j.LoggerFactory;
  * leveraging the relevant standards and (hopefully) easing usage.</dd>
  * </dl>
  *
- * <h1>Some definitions</h1>
+ * <h2>Some definitions</h2>
  *
  * To understand precisely the syntaxes accepted by this class, some definitions
  * are useful.
@@ -114,13 +114,11 @@ import org.slf4j.LoggerFactory;
  * <dt>Relative path</dt>
  * <dd>A “relative path” Git URL does not start with a slash and, if it contains
  * a colon, contains a slash before the first colon.</dd>
- * </ul>
  * </dl>
  * These cases are exclusive, but some string match none of them, for example:
  * the empty string, {@code ssh://}, {@code https:///host/},
  * {@code https://host}, {@code unknownscheme://host}… See {@link GitUrlKind} to
  * detect which kind you face.
- *
  * <dt>Java {@link URI}</dt>
  * <dd>A URI as per the Java-interpretation of RFC 2396 (including the
  * interpretation that an empty authority is permitted). This class is
@@ -135,19 +133,20 @@ import org.slf4j.LoggerFactory;
  * <dd>An absolute hierarchical URI with a (possibly empty) authority has the
  * form
  * <code><i>scheme</i>://<i>authority</i>/<i>xyz</i>[?<i>query</i>][#<i>fragment</i>]</code>.</dd>
+ * </dl>
  * In both cases, the path is <code>/<i>xyz</i></code>. Note that the
  * <code><i>xyz</i></code> part may be empty, but the path may not: the RFC
  * mandates that an absolute hierarchical URI has an absolute path.</dd>
  * </dl>
  *
- * <h1>Comparison</h1>
+ * <h2>Comparison</h2>
  *
  * Compared to {@link URIish}, this class is immutable, rejects relative path
  * Git URLs, guarantees convertibility to an absolute hierarchical URI, accepts
  * URIs as input, will always return a scheme when asked for one, provides clear
  * round-trip guarantees (and possibly more differences).
  *
- * <h1>More information</h1>
+ * <h2>More information</h2>
  *
  * <a href=
  * "https://stackoverflow.com/questions/70295093/git-uris-does-not-match-ssh-uri-specification">This

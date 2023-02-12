@@ -9,7 +9,7 @@ import org.eclipse.jgit.lib.ObjectId;
 /**
  * A git path root is an absolute git path that has an empty sequence of names.
  * In other words, it consists in a root component only. Its string form ends
- * with <tt>//</tt>.
+ * with <code>//</code>.
  * <p>
  * Note that the commit referred to (possibly indirectly) by this git path root
  * may not exist in the associated git file system. This occurs when either:
@@ -38,7 +38,7 @@ public interface GitPathRoot extends GitPath {
 
 	/**
 	 * Returns the commit id contained in this root component, if any. The method is
-	 * called <tt>static</tt> because the returned id is simply the one that was
+	 * called <code>static</code> because the returned id is simply the one that was
 	 * given when constructing this path. This method does not attempt to check that
 	 * the returned id indeed corresponds to some commit in this file system.
 	 *
@@ -51,8 +51,8 @@ public interface GitPathRoot extends GitPath {
 
 	/**
 	 * Returns the git ref contained in this root component, if any. The returned
-	 * string starts with <tt>refs/</tt>, does not contain <tt>//</tt>, does not
-	 * contain <tt>\</tt>, and does not end with <tt>/</tt>.
+	 * string starts with <code>refs/</code>, does not contain <code>//</code>, does
+	 * not contain <code>\</code>, and does not end with <code>/</code>.
 	 * <p>
 	 * This method does not access the file system.
 	 *

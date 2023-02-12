@@ -382,12 +382,12 @@ public abstract class GitPathImpl implements GitPath {
 	 *
 	 * <p>
 	 * If the {@code other} parameter represents an {@link #isAbsolute() absolute}
-	 * path (equivalently, if it starts with a <tt>/</tt>), then this method returns
-	 * the git path represented by {@code other}. If {@code other} is an empty
-	 * string then this method trivially returns this path. Otherwise this method
-	 * considers this path to be a directory and resolves the given path against
-	 * this path: this method <em>joins</em> the given path to this path and returns
-	 * a resulting path that {@link #endsWith ends} with the given path.
+	 * path (equivalently, if it starts with a <code>/</code>), then this method
+	 * returns the git path represented by {@code other}. If {@code other} is an
+	 * empty string then this method trivially returns this path. Otherwise this
+	 * method considers this path to be a directory and resolves the given path
+	 * against this path: this method <em>joins</em> the given path to this path and
+	 * returns a resulting path that {@link #endsWith ends} with the given path.
 	 * <p>
 	 * This is equivalent to converting the given path string to a {@code Path} and
 	 * resolving it against this {@code Path} in the manner specified by the

@@ -1,9 +1,5 @@
 package io.github.oliviercailloux.gitjfs;
 
-import io.github.oliviercailloux.gitjfs.impl.GitDfsFileSystemImpl;
-import io.github.oliviercailloux.gitjfs.impl.GitFileFileSystemImpl;
-import io.github.oliviercailloux.gitjfs.impl.GitFileSystemProviderImpl;
-import io.github.oliviercailloux.gitjfs.impl.GitPathImpl;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
@@ -48,10 +44,10 @@ public interface IGitFileSystemProvider {
 	 * </p>
 	 * <p>
 	 * Such an URI can have been obtained by a call to
-	 * {@link GitFileFileSystemImpl#toUri()}, or by a call to
-	 * {@link GitPathImpl#toUri()} on an instance of a git path associated with a
-	 * {@link GitFileFileSystemImpl} instance. In both cases, under condition of
-	 * having used the same version of this library.
+	 * {@link GitFileFileSystem#toUri()}, or by a call to {@link GitPath#toUri()} on
+	 * an instance of a git path associated with a {@link GitFileFileSystem}
+	 * instance. In both cases, under condition of having used the same version of
+	 * this library.
 	 * </p>
 	 * <p>
 	 * Thus, an URI obtained during a previous VM execution may be used as well, but
@@ -219,10 +215,10 @@ public interface IGitFileSystemProvider {
 	 * </p>
 	 * <p>
 	 * The given URI must have been returned by a call to
-	 * {@link GitFileSystemImpl#toUri()} on a git file system instance created by
-	 * this provider and that is still open; or by {@link GitPathImpl#toUri()} on a
-	 * git path instance associated to a git file system created by this provider
-	 * and that is still open.
+	 * {@link GitFileSystem#toUri()} on a git file system instance created by this
+	 * provider and that is still open; or by {@link GitPath#toUri()} on a git path
+	 * instance associated to a git file system created by this provider and that is
+	 * still open.
 	 * </p>
 	 * <p>
 	 * (The wording of the contract for
@@ -234,8 +230,8 @@ public interface IGitFileSystemProvider {
 	 * satisfy it, so I take it to be an imprecise wording.)
 	 * </p>
 	 *
-	 * @param gitFsUri the uri as returned by {@link GitFileSystemImpl#toUri()} or
-	 *                 {@link GitPathImpl#toUri()}.
+	 * @param gitFsUri the uri as returned by {@link GitFileSystem#toUri()} or
+	 *                 {@link GitPath#toUri()}.
 	 * @return an already existing, open git file system.
 	 * @throws FileSystemNotFoundException if no corresponding file system is found.
 	 */
@@ -248,12 +244,12 @@ public interface IGitFileSystemProvider {
 	 * </p>
 	 * <p>
 	 * There must be an open git file system whose
-	 * {@link GitFileFileSystemImpl#getGitDir()} method returns a path with the same
+	 * {@link GitFileFileSystem#getGitDir()} method returns a path with the same
 	 * absolute path as {@code gitDir}. In other cases, no guarantee is given.
 	 * </p>
 	 *
 	 * @param gitDir the git directory as returned by
-	 *               {@link GitFileFileSystemImpl#getGitDir()}.
+	 *               {@link GitFileFileSystem#getGitDir()}.
 	 * @return an already existing, open git file system.
 	 * @throws FileSystemNotFoundException if no corresponding file system is found.
 	 */
@@ -265,8 +261,8 @@ public interface IGitFileSystemProvider {
 	 * provider.
 	 * </p>
 	 * <p>
-	 * There must be an open git {@link GitDfsFileSystemImpl} file system resting on
-	 * a {@link DfsRepository} whose {@link DfsRepository#getDescription()
+	 * There must be an open git {@link GitDfsFileSystem} file system resting on a
+	 * {@link DfsRepository} whose {@link DfsRepository#getDescription()
 	 * description} contains the given name.
 	 * </p>
 	 *
@@ -279,10 +275,10 @@ public interface IGitFileSystemProvider {
 	/**
 	 * <p>
 	 * Returns a {@code Path} object by converting the given {@link URI}. The given
-	 * uri must have been returned by {@link GitPathImpl#toUri()} on a path
-	 * associated to an open git file system created by this provider, or directly
-	 * by {@link GitFileSystemImpl#toUri()} on an open git file system created by
-	 * this provider.
+	 * uri must have been returned by {@link GitPath#toUri()} on a path associated
+	 * to an open git file system created by this provider, or directly by
+	 * {@link GitFileSystem#toUri()} on an open git file system created by this
+	 * provider.
 	 * </p>
 	 * <p>
 	 * This method does not access the underlying file system and requires no
@@ -299,8 +295,8 @@ public interface IGitFileSystemProvider {
 	 * @return The resulting {@code Path}
 	 *
 	 * @throws IllegalArgumentException    If the given URI has not been issued by
-	 *                                     {@link GitFileSystemImpl#toUri()} or
-	 *                                     {@link GitPathImpl#toUri()}.
+	 *                                     {@link GitFileSystem#toUri()} or
+	 *                                     {@link GitPath#toUri()}.
 	 * @throws FileSystemNotFoundException If the file system, indirectly identified
 	 *                                     by the URI, is not open or has not been
 	 *                                     created by this provider.
@@ -318,7 +314,7 @@ public interface IGitFileSystemProvider {
 	 * GitPath}.
 	 *
 	 * @throws IllegalArgumentException if {@code dir} cannot be cast to
-	 *                                  {@link GitPathImpl}
+	 *                                  {@link GitPath}
 	 */
 	DirectoryStream<Path> newDirectoryStream(Path dir, Filter<? super Path> filter) throws IOException;
 

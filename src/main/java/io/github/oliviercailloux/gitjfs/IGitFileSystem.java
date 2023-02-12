@@ -3,7 +3,6 @@ package io.github.oliviercailloux.gitjfs;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.graph.ImmutableGraph;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemProviderImpl;
-import io.github.oliviercailloux.gitjfs.impl.GitPathImpl;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
@@ -27,7 +26,7 @@ import org.eclipse.jgit.lib.ObjectId;
 /**
  * <p>
  * A git file system. Associated to a git repository. Can be used to obtain
- * {@link GitPathImpl} instances.
+ * {@link GitPath} instances.
  * </p>
  * <p>
  * Must be {@link #close() closed} to release resources associated with readers.
@@ -39,7 +38,7 @@ import org.eclipse.jgit.lib.ObjectId;
  * {@code dir/file.txt} reads {@code otherdir/file.txt}. This is also how git
  * <a href="https://stackoverflow.com/a/954575">operates</a>: checking out
  * {@code dir} will restore it as a symlink to {@code otherdir}. Use
- * {@link GitFileSystemProviderImpl#readSymbolicLink} to obtain the target of a
+ * {@link GitFileSystemProvider#readSymbolicLink} to obtain the target of a
  * link. This library will however refuse to follow a link out of the git
  * repository it originates from.
  * <p>
@@ -72,7 +71,7 @@ import org.eclipse.jgit.lib.ObjectId;
  *
  * @see #getAbsolutePath(String, String...)
  * @see #getRelativePath(String...)
- * @see #getGitRootDirectories()
+ * @see #graph()
  */
 public interface IGitFileSystem extends AutoCloseable {
 
@@ -126,10 +125,11 @@ public interface IGitFileSystem extends AutoCloseable {
 	 * </p>
 	 *
 	 * @param first the string form of the root component, possibly followed by
-	 *              other path segments. Must start with <tt>/refs/</tt> or
-	 *              <tt>/heads/</tt> or <tt>/tags/</tt> or be a slash followed by a
-	 *              40-characters long sha-1; must contain at most once {@code //};
-	 *              if does not contain {@code //}, must end with {@code /}.
+	 *              other path segments. Must start with <code>/refs/</code> or
+	 *              <code>/heads/</code> or <code>/tags/</code> or be a slash
+	 *              followed by a 40-characters long sha-1; must contain at most
+	 *              once {@code //}; if does not contain {@code //}, must end with
+	 *              {@code /}.
 	 * @param more  may start with {@code /}.
 	 * @return an absolute git path.
 	 * @throws InvalidPathException if {@code first} does not contain a syntaxically
@@ -167,10 +167,11 @@ public interface IGitFileSystem extends AutoCloseable {
 	 * exists, or that the commit this refers to exists.
 	 *
 	 * @param rootStringForm the string form of the root component. Must start with
-	 *                       <tt>/refs/</tt> or <tt>/heads/</tt> or <tt>/tags/</tt>
-	 *                       or be a 40-characters long sha-1 surrounded by slash
-	 *                       characters; must end with <tt>/</tt>; may not contain
-	 *                       <tt>//</tt> nor <tt>\</tt>.
+	 *                       <code>/refs/</code> or <code>/heads/</code> or
+	 *                       <code>/tags/</code> or be a 40-characters long sha-1
+	 *                       surrounded by slash characters; must end with
+	 *                       <code>/</code>; may not contain <code>//</code> nor
+	 *                       <code>\</code>.
 	 * @return a git path root
 	 * @throws InvalidPathException if {@code rootStringForm} does not contain a
 	 *                              syntaxically valid root component
@@ -217,13 +218,11 @@ public interface IGitFileSystem extends AutoCloseable {
 
 	/**
 	 * Retrieve the set of all commits of this repository reachable from some ref by
-	 * following the parent relation. Consider calling rather {@code {@link
-	 * #graph()}.getNodes()}, whose type is more precise.
+	 * following the parent relation. Consider calling rather <code>{@link
+	 * #graph()}.getNodes()</code>, whose type is more precise.
 	 *
 	 * @return absolute path roots referring to commit ids.
-	 * @throws UncheckedIOException if an I/O error occurs (I have no idea why the
-	 *                              Java Files API does not want an IOException
-	 *                              here)
+	 * @throws UncheckedIOException if an I/O error occurs
 	 */
 	ImmutableSet<Path> getRootDirectories();
 
@@ -263,8 +262,9 @@ public interface IGitFileSystem extends AutoCloseable {
 
 	/**
 	 * Returns a set containing one git path root for each git ref (of the form
-	 * <tt>/refs/…</tt>) contained in this git file system. This does not consider
-	 * HEAD or other special references, but considers both branches and tags.
+	 * <code>/refs/…</code>) contained in this git file system. This does not
+	 * consider HEAD or other special references, but considers both branches and
+	 * tags.
 	 *
 	 * @return git path roots referencing git refs (not commit ids).
 	 *
