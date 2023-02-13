@@ -1,5 +1,7 @@
 package io.github.oliviercailloux.gitjfs;
 
+import org.eclipse.jgit.lib.ObjectId;
+
 /**
  * A {@link GitPathRoot} containing a git ref.
  */
@@ -13,6 +15,17 @@ public interface GitPathRootRef extends GitPathRoot {
   @Override
   @Deprecated
   boolean isCommitId();
+
+  /**
+   * Throws an exception.
+   *
+   * @return nothing
+   * @deprecated No reason to call this.
+   * @throws IllegalStateException always
+   */
+  @Override
+  @Deprecated
+  ObjectId getStaticCommitId() throws IllegalStateException;
 
   /**
    * Returns {@code true}.

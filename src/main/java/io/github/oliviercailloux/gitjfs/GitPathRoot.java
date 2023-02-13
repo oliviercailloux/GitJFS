@@ -42,7 +42,7 @@ public interface GitPathRoot extends GitPath {
    * some commit in this file system.
    *
    * @return the commit id contained in this root component.
-   * @throws IllegalArgumentException iff this root component does not contain a commit id
+   * @throws IllegalStateException iff this root component does not contain a commit id
    * @see #isCommitId()
    */
   ObjectId getStaticCommitId();
