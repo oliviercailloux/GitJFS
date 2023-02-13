@@ -92,6 +92,33 @@ public interface IGitFileSystem extends AutoCloseable {
   GitPath getPath(String first, String... more) throws InvalidPathException;
 
   /**
+   * Returns an absolute git path. No check is performed to ensure that the ref exists, or that the
+   * commit this refers to exists.
+   *
+   * @param rootStringForm the string form of the root component. Must start with
+   *        <code>/refs/</code> or <code>/heads/</code> or <code>/tags/</code> or be a 40-characters
+   *        long sha-1 surrounded by slash characters; must end with <code>/</code>; may not contain
+   *        <code>//</code> nor <code>\</code>.
+   * @return a git path root
+   * @throws InvalidPathException if {@code rootStringForm} does not contain a syntaxically valid
+   *         root component
+   * @see GitPathRoot
+   */
+  GitPathRoot getPathRoot(String rootStringForm) throws InvalidPathException;
+
+  /**
+   * Returns a git path referring to a commit designated by its id. No check is performed to ensure
+   * that the commit exists.
+   *
+   * @param commitId the commit to refer to
+   * @return a git path root
+   * @see GitPathRoot
+   */
+  GitPathRootSha getPathRoot(ObjectId commitId);
+
+  GitPathRootRef getPathRootRef(String rootStringForm) throws InvalidPathException;
+
+  /**
    * <p>
    * Converts an absolute git path string, or a sequence of strings that when joined form an
    * absolute git path string, to an absolute {@code GitPath}.
@@ -142,33 +169,6 @@ public interface IGitFileSystem extends AutoCloseable {
   GitPath getAbsolutePath(ObjectId commitId, String internalPath1, String... internalPath);
 
   /**
-   * Returns a git path referring to a commit designated by its id. No check is performed to ensure
-   * that the commit exists.
-   *
-   * @param commitId the commit to refer to
-   * @return a git path root
-   * @see GitPathRoot
-   */
-  GitPathRootSha getPathRoot(ObjectId commitId);
-
-  GitPathRootRef getPathRootRef(String rootStringForm) throws InvalidPathException;
-
-  /**
-   * Returns an absolute git path. No check is performed to ensure that the ref exists, or that the
-   * commit this refers to exists.
-   *
-   * @param rootStringForm the string form of the root component. Must start with
-   *        <code>/refs/</code> or <code>/heads/</code> or <code>/tags/</code> or be a 40-characters
-   *        long sha-1 surrounded by slash characters; must end with <code>/</code>; may not contain
-   *        <code>//</code> nor <code>\</code>.
-   * @return a git path root
-   * @throws InvalidPathException if {@code rootStringForm} does not contain a syntaxically valid
-   *         root component
-   * @see GitPathRoot
-   */
-  GitPathRoot getPathRoot(String rootStringForm) throws InvalidPathException;
-
-  /**
    * <p>
    * Converts a relative git path string, or a sequence of strings that when joined form a relative
    * git path string, to a relative {@code GitPath}.
@@ -197,21 +197,6 @@ public interface IGitFileSystem extends AutoCloseable {
    * @see GitPath
    */
   GitPath getRelativePath(String... names) throws InvalidPathException;
-
-  /**
-   * TODO
-   */
-  Iterable<FileStore> getFileStores();
-
-  /**
-   * Retrieve the set of all commits of this repository reachable from some ref by following the
-   * parent relation. Consider calling rather <code>{@link
-   * #graph()}.getNodes()</code>, whose type is more precise.
-   *
-   * @return absolute path roots referring to commit ids.
-   * @throws UncheckedIOException if an I/O error occurs
-   */
-  ImmutableSet<Path> getRootDirectories();
 
   /**
    * Retrieve the set of all commits of this repository reachable from some ref by following the
@@ -252,6 +237,46 @@ public interface IGitFileSystem extends AutoCloseable {
    * @throws IOException if an I/O error occurs
    */
   ImmutableSet<GitPathRootRef> refs() throws IOException;
+
+  /**
+   * Returns the provider that created this file system.
+   *
+   * @return The provider that created this file system.
+   */
+  GitFileSystemProvider provider();
+
+  public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException;
+
+  /**
+   * <p>
+   * Returns a gitjfs URI that identifies this git file system, and this specific git file system
+   * instance while it is open.
+   * </p>
+   * <p>
+   * While this instance is open, giving the returned URI to
+   * {@link GitFileSystemProviderImpl#getFileSystem(URI)} will return this file system instance;
+   * giving it to {@link GitFileSystemProviderImpl#getPath(URI)} will return the default path
+   * associated to this file system.
+   * </p>
+   *
+   * @return the URI that identifies this file system.
+   */
+  URI toUri();
+
+  /**
+   * Retrieve the set of all commits of this repository reachable from some ref by following the
+   * parent relation. Consider calling rather <code>{@link
+   * #graph()}.getNodes()</code>, whose type is more precise.
+   *
+   * @return absolute path roots referring to commit ids.
+   * @throws UncheckedIOException if an I/O error occurs
+   */
+  ImmutableSet<Path> getRootDirectories();
+
+  /**
+   * TODO
+   */
+  Iterable<FileStore> getFileStores();
 
   /**
    * Returns a {@code PathMatcher} that performs match operations on the {@code String}
@@ -489,13 +514,6 @@ public interface IGitFileSystem extends AutoCloseable {
   WatchService newWatchService() throws IOException;
 
   /**
-   * Returns the provider that created this file system.
-   *
-   * @return The provider that created this file system.
-   */
-  GitFileSystemProvider provider();
-
-  /**
    * Returns the set of the {@link FileAttributeView#name names} of the file attribute views
    * supported by this {@code FileSystem}.
    *
@@ -511,8 +529,6 @@ public interface IGitFileSystem extends AutoCloseable {
    * @return An unmodifiable set of the names of the supported file attribute views
    */
   Set<String> supportedFileAttributeViews();
-
-  public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException;
 
   /**
    * Closes this file system.
@@ -534,20 +550,4 @@ public interface IGitFileSystem extends AutoCloseable {
    */
   @Override
   void close() throws IOException;
-
-  /**
-   * <p>
-   * Returns a gitjfs URI that identifies this git file system, and this specific git file system
-   * instance while it is open.
-   * </p>
-   * <p>
-   * While this instance is open, giving the returned URI to
-   * {@link GitFileSystemProviderImpl#getFileSystem(URI)} will return this file system instance;
-   * giving it to {@link GitFileSystemProviderImpl#getPath(URI)} will return the default path
-   * associated to this file system.
-   * </p>
-   *
-   * @return the URI that identifies this file system.
-   */
-  URI toUri();
 }
