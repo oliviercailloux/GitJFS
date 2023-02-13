@@ -61,11 +61,13 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
   }
 
   @Override
+  @Deprecated
   public GitPathRootImpl getRoot() {
     return this;
   }
 
   @Override
+  @Deprecated
   public GitPathRootImpl toAbsolutePath() {
     return this;
   }
