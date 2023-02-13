@@ -11,33 +11,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GitPathRootShaCachedImpl extends GitPathRootShaImpl implements GitPathRootShaCached {
-	@SuppressWarnings("unused")
-	private static final Logger LOGGER = LoggerFactory.getLogger(GitPathRootShaCachedImpl.class);
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = LoggerFactory.getLogger(GitPathRootShaCachedImpl.class);
 
-	protected GitPathRootShaCachedImpl(GitFileSystemImpl fileSystem, GitRev gitRev, RevCommit commit) {
-		super(fileSystem, gitRev, Optional.of(commit));
-		checkArgument(gitRev.isCommitId());
-		checkArgument(commit.getId().equals(gitRev.getCommitId()));
-	}
+  protected GitPathRootShaCachedImpl(GitFileSystemImpl fileSystem, GitRev gitRev,
+      RevCommit commit) {
+    super(fileSystem, gitRev, Optional.of(commit));
+    checkArgument(gitRev.isCommitId());
+    checkArgument(commit.getId().equals(gitRev.getCommitId()));
+  }
 
-	@Override
-	public GitPathRootShaCachedImpl toSha() {
-		return this;
-	}
+  @Override
+  public GitPathRootShaCachedImpl toSha() {
+    return this;
+  }
 
-	@Override
-	public GitPathRootShaCachedImpl toShaCached() {
-		return this;
-	}
+  @Override
+  public GitPathRootShaCachedImpl toShaCached() {
+    return this;
+  }
 
-	@Override
-	RevCommit getRevCommit() {
-		verify(!revCommit.isEmpty());
-		return revCommit.get();
-	}
+  @Override
+  RevCommit getRevCommit() {
+    verify(!revCommit.isEmpty());
+    return revCommit.get();
+  }
 
-	@Override
-	public Commit getCommit() {
-		return getCommit(getRevCommit());
-	}
+  @Override
+  public Commit getCommit() {
+    return getCommit(getRevCommit());
+  }
 }

@@ -5,10 +5,9 @@ import java.nio.file.NoSuchFileException;
 
 public interface GitPathRootSha extends GitPathRoot {
 
-	@Override
-	GitPathRootSha toSha();
+  @Override
+  GitPathRootSha toSha();
 
-	@Override
-	GitPathRootShaCached toShaCached() throws IOException, NoSuchFileException;
-
+  @Override
+  GitPathRootShaCached toShaCached() throws IOException, NoSuchFileException;
 }

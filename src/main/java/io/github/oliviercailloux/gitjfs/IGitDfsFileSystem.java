@@ -8,5 +8,5 @@ import org.eclipse.jgit.internal.storage.dfs.DfsRepository;
  * @see IGitFileSystemProvider#newFileSystemFromDfsRepository(DfsRepository)
  */
 public interface IGitDfsFileSystem extends IGitFileSystem {
-	DfsRepository getRepository();
+  DfsRepository getRepository();
 }

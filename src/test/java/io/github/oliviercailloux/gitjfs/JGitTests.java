@@ -12,16 +12,17 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.junit.jupiter.api.Test;
 
 public class JGitTests {
-	@Test
-	void testCreateRepo() throws Exception {
-		try (Repository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
-//		try (Repository repo = new FileRepository(Utils.getTempUniqueDirectory("created").toFile())) {
-			JGit.createRepoWithSubDir(repo);
+  @Test
+  void testCreateRepo() throws Exception {
+    try (Repository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
+      // try (Repository repo = new
+      // FileRepository(Utils.getTempUniqueDirectory("created").toFile())) {
+      JGit.createRepoWithSubDir(repo);
 
-			try (Git git = Git.wrap(repo)) {
-				final ImmutableList<RevCommit> read = ImmutableList.copyOf(git.log().call());
-				assertEquals(3, read.size());
-			}
-		}
-	}
+      try (Git git = Git.wrap(repo)) {
+        final ImmutableList<RevCommit> read = ImmutableList.copyOf(git.log().call());
+        assertEquals(3, read.size());
+      }
+    }
+  }
 }

@@ -11,46 +11,45 @@ import org.eclipse.jgit.revwalk.RevCommit;
 
 public class GitPathRootRefImpl extends GitPathRootImpl implements GitPathRootRef {
 
-	private GitPathRootShaImpl sha;
+  private GitPathRootShaImpl sha;
 
-	protected GitPathRootRefImpl(GitFileSystemImpl fileSystem, GitRev gitRev) {
-		super(fileSystem, gitRev);
-		checkArgument(gitRev.isRef());
-		sha = null;
-	}
+  protected GitPathRootRefImpl(GitFileSystemImpl fileSystem, GitRev gitRev) {
+    super(fileSystem, gitRev);
+    checkArgument(gitRev.isRef());
+    sha = null;
+  }
 
-	@Override
-	public GitPathRootShaImpl toSha() throws IOException, NoSuchFileException {
-		refreshCache();
-		if (sha == null) {
-			throw new NoSuchFileException(toString());
-		}
-		return sha;
-	}
+  @Override
+  public GitPathRootShaImpl toSha() throws IOException, NoSuchFileException {
+    refreshCache();
+    if (sha == null) {
+      throw new NoSuchFileException(toString());
+    }
+    return sha;
+  }
 
-	private void refreshCache() throws IOException, NoSuchFileException {
-		final Optional<ObjectId> newIdOpt = getFileSystem().getObjectId(getGitRef());
-		final GitPathRootShaImpl newSha;
-		if (newIdOpt.isPresent()) {
-			final ObjectId newId = newIdOpt.get();
-			/**
-			 * We try to hold to our existing reference if possible, because it may contain
-			 * valuable cache data.
-			 */
-			if (sha == null || !sha.getStaticCommitId().equals(newId)) {
-				newSha = getFileSystem().getPathRoot(newId);
-			} else {
-				newSha = sha;
-			}
-		} else {
-			newSha = null;
-		}
-		sha = newSha;
-	}
+  private void refreshCache() throws IOException, NoSuchFileException {
+    final Optional<ObjectId> newIdOpt = getFileSystem().getObjectId(getGitRef());
+    final GitPathRootShaImpl newSha;
+    if (newIdOpt.isPresent()) {
+      final ObjectId newId = newIdOpt.get();
+      /**
+       * We try to hold to our existing reference if possible, because it may contain valuable cache
+       * data.
+       */
+      if (sha == null || !sha.getStaticCommitId().equals(newId)) {
+        newSha = getFileSystem().getPathRoot(newId);
+      } else {
+        newSha = sha;
+      }
+    } else {
+      newSha = null;
+    }
+    sha = newSha;
+  }
 
-	@Override
-	RevCommit getRevCommit() throws IOException, NoSuchFileException {
-		return toSha().getRevCommit();
-	}
-
+  @Override
+  RevCommit getRevCommit() throws IOException, NoSuchFileException {
+    return toSha().getRevCommit();
+  }
 }

@@ -27,157 +27,159 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GitFileFileSystemImpl extends GitFileFileSystem {
-	@SuppressWarnings("unused")
-	private static final Logger LOGGER = LoggerFactory.getLogger(GitFileFileSystemImpl.class);
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = LoggerFactory.getLogger(GitFileFileSystemImpl.class);
 
-	static GitFileFileSystemImpl givenUserRepository(GitFileSystemProviderImpl provider, FileRepository repository) {
-		return new GitFileFileSystemImpl(provider, repository, false);
-	}
+  static GitFileFileSystemImpl givenUserRepository(GitFileSystemProviderImpl provider,
+      FileRepository repository) {
+    return new GitFileFileSystemImpl(provider, repository, false);
+  }
 
-	static GitFileFileSystemImpl givenOurRepository(GitFileSystemProviderImpl provider, FileRepository repository) {
-		return new GitFileFileSystemImpl(provider, repository, true);
-	}
+  static GitFileFileSystemImpl givenOurRepository(GitFileSystemProviderImpl provider,
+      FileRepository repository) {
+    return new GitFileFileSystemImpl(provider, repository, true);
+  }
 
-	/**
-	 * See {@link GitDfsFileSystemImpl}.
-	 */
-	private final FileRepository repository;
-	private final GitFileSystemImpl delegate;
+  /**
+   * See {@link GitDfsFileSystemImpl}.
+   */
+  private final FileRepository repository;
+  private final GitFileSystemImpl delegate;
 
-	private GitFileFileSystemImpl(GitFileSystemProviderImpl gitProvider, FileRepository repository,
-			boolean shouldCloseRepository) {
-		delegate = new GitFileSystemImpl(gitProvider, repository, shouldCloseRepository);
-		LOGGER.debug("Creating file system given {}, {}, {}.", gitProvider, repository, shouldCloseRepository);
-		checkNotNull(repository.getDirectory());
-		this.repository = repository;
-	}
+  private GitFileFileSystemImpl(GitFileSystemProviderImpl gitProvider, FileRepository repository,
+      boolean shouldCloseRepository) {
+    delegate = new GitFileSystemImpl(gitProvider, repository, shouldCloseRepository);
+    LOGGER.debug("Creating file system given {}, {}, {}.", gitProvider, repository,
+        shouldCloseRepository);
+    checkNotNull(repository.getDirectory());
+    this.repository = repository;
+  }
 
-	/**
-	 * @deprecated Temporary workaround.
-	 */
-	@Deprecated
-	public Repository getRepository() {
-		return repository;
-	}
+  /**
+   * @deprecated Temporary workaround.
+   */
+  @Deprecated
+  public Repository getRepository() {
+    return repository;
+  }
 
-	@Override
-	public Path getGitDir() {
-		return repository.getDirectory().toPath();
-	}
+  @Override
+  public Path getGitDir() {
+    return repository.getDirectory().toPath();
+  }
 
-	protected GitFileSystemImpl delegate() {
-		return delegate;
-	}
+  protected GitFileSystemImpl delegate() {
+    return delegate;
+  }
 
-	@Override
-	public URI toUri() {
-		return delegate.toUri();
-	}
+  @Override
+  public URI toUri() {
+    return delegate.toUri();
+  }
 
-	@Override
-	public GitPath getPath(String first, String... more) {
-		return delegate.getPath(first, more);
-	}
+  @Override
+  public GitPath getPath(String first, String... more) {
+    return delegate.getPath(first, more);
+  }
 
-	@Override
-	public GitPath getAbsolutePath(String first, String... more) throws InvalidPathException {
-		return delegate.getAbsolutePath(first, more);
-	}
+  @Override
+  public GitPath getAbsolutePath(String first, String... more) throws InvalidPathException {
+    return delegate.getAbsolutePath(first, more);
+  }
 
-	@Override
-	public GitPath getAbsolutePath(ObjectId commitId, String internalPath1, String... internalPath) {
-		return delegate.getAbsolutePath(commitId, internalPath1, internalPath);
-	}
+  @Override
+  public GitPath getAbsolutePath(ObjectId commitId, String internalPath1, String... internalPath) {
+    return delegate.getAbsolutePath(commitId, internalPath1, internalPath);
+  }
 
-	@Override
-	public GitPathRootSha getPathRoot(ObjectId commitId) {
-		return delegate.getPathRoot(commitId);
-	}
+  @Override
+  public GitPathRootSha getPathRoot(ObjectId commitId) {
+    return delegate.getPathRoot(commitId);
+  }
 
-	@Override
-	public GitPathRootRef getPathRootRef(String rootStringForm) throws InvalidPathException {
-		return delegate.getPathRootRef(rootStringForm);
-	}
+  @Override
+  public GitPathRootRef getPathRootRef(String rootStringForm) throws InvalidPathException {
+    return delegate.getPathRootRef(rootStringForm);
+  }
 
-	@Override
-	public GitPathRoot getPathRoot(String rootStringForm) throws InvalidPathException {
-		return delegate.getPathRoot(rootStringForm);
-	}
+  @Override
+  public GitPathRoot getPathRoot(String rootStringForm) throws InvalidPathException {
+    return delegate.getPathRoot(rootStringForm);
+  }
 
-	@Override
-	public GitPath getRelativePath(String... names) throws InvalidPathException {
-		return delegate.getRelativePath(names);
-	}
+  @Override
+  public GitPath getRelativePath(String... names) throws InvalidPathException {
+    return delegate.getRelativePath(names);
+  }
 
-	@Override
-	public ImmutableGraph<GitPathRootSha> graph() throws IOException {
-		return delegate.graph();
-	}
+  @Override
+  public ImmutableGraph<GitPathRootSha> graph() throws IOException {
+    return delegate.graph();
+  }
 
-	@Override
-	public ImmutableSet<GitPathRootRef> refs() throws IOException {
-		return delegate.refs();
-	}
+  @Override
+  public ImmutableSet<GitPathRootRef> refs() throws IOException {
+    return delegate.refs();
+  }
 
-	@Override
-	public GitFileSystemProvider provider() {
-		return delegate.provider();
-	}
+  @Override
+  public GitFileSystemProvider provider() {
+    return delegate.provider();
+  }
 
-	@Override
-	public void close() throws IOException {
-		delegate().close();
-		delegate.provider().getGitFileSystems().hasBeenClosedEvent(this);
-	}
+  @Override
+  public void close() throws IOException {
+    delegate().close();
+    delegate.provider().getGitFileSystems().hasBeenClosedEvent(this);
+  }
 
-	@Override
-	public boolean isOpen() {
-		return delegate.isOpen();
-	}
+  @Override
+  public boolean isOpen() {
+    return delegate.isOpen();
+  }
 
-	@Override
-	public boolean isReadOnly() {
-		return delegate.isReadOnly();
-	}
+  @Override
+  public boolean isReadOnly() {
+    return delegate.isReadOnly();
+  }
 
-	@Override
-	public String getSeparator() {
-		return delegate.getSeparator();
-	}
+  @Override
+  public String getSeparator() {
+    return delegate.getSeparator();
+  }
 
-	@Override
-	public ImmutableSet<Path> getRootDirectories() {
-		return delegate.getRootDirectories();
-	}
+  @Override
+  public ImmutableSet<Path> getRootDirectories() {
+    return delegate.getRootDirectories();
+  }
 
-	@Override
-	public Iterable<FileStore> getFileStores() {
-		return delegate.getFileStores();
-	}
+  @Override
+  public Iterable<FileStore> getFileStores() {
+    return delegate.getFileStores();
+  }
 
-	@Override
-	public Set<String> supportedFileAttributeViews() {
-		return delegate.supportedFileAttributeViews();
-	}
+  @Override
+  public Set<String> supportedFileAttributeViews() {
+    return delegate.supportedFileAttributeViews();
+  }
 
-	@Override
-	public PathMatcher getPathMatcher(String syntaxAndPattern) {
-		return delegate.getPathMatcher(syntaxAndPattern);
-	}
+  @Override
+  public PathMatcher getPathMatcher(String syntaxAndPattern) {
+    return delegate.getPathMatcher(syntaxAndPattern);
+  }
 
-	@Override
-	public UserPrincipalLookupService getUserPrincipalLookupService() {
-		return delegate.getUserPrincipalLookupService();
-	}
+  @Override
+  public UserPrincipalLookupService getUserPrincipalLookupService() {
+    return delegate.getUserPrincipalLookupService();
+  }
 
-	@Override
-	public WatchService newWatchService() throws IOException {
-		return delegate.newWatchService();
-	}
+  @Override
+  public WatchService newWatchService() throws IOException {
+    return delegate.newWatchService();
+  }
 
-	@Override
-	public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException {
-		return delegate.diff(first, second);
-	}
-
+  @Override
+  public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException {
+    return delegate.diff(first, second);
+  }
 }
