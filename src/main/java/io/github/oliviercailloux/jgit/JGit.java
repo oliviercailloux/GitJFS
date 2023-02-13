@@ -50,6 +50,7 @@ import org.eclipse.jgit.lib.TreeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public class JGit {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(JGit.class);
@@ -291,23 +292,23 @@ public class JGit {
   private static ObjectId insertTree(ObjectInserter inserter, Path directory) throws IOException {
     checkArgument(Files.isDirectory(directory));
 
-    /**
+    /*
      * TODO TreeFormatter says that the entries must come in the <i>right</i> order; what’s that?
      */
     final TreeFormatter treeFormatter = new TreeFormatter();
 
-    /** See TreeFormatter: “This formatter does not process subtrees”. */
+    /* See TreeFormatter: “This formatter does not process subtrees”. */
     try (Stream<Path> content = Files.list(directory);) {
       for (Path relEntry : (Iterable<Path>) content::iterator) {
         final String entryName = relEntry.getFileName().toString();
-        /** Work around Jimfs bug, see https://github.com/google/jimfs/issues/105 . */
+        /* Work around Jimfs bug, see https://github.com/google/jimfs/issues/105 . */
         final Path entry = relEntry.toAbsolutePath();
         if (Files.isRegularFile(entry, LinkOption.NOFOLLOW_LINKS)) {
           LOGGER.debug("Creating regular: {}.", entry);
           final String fileContent = Files.readString(entry);
-          final ObjectId fileOId =
+          final ObjectId fileOid =
               inserter.insert(Constants.OBJ_BLOB, fileContent.getBytes(StandardCharsets.UTF_8));
-          treeFormatter.append(entryName, FileMode.REGULAR_FILE, fileOId);
+          treeFormatter.append(entryName, FileMode.REGULAR_FILE, fileOid);
         } else if (Files.isDirectory(entry, LinkOption.NOFOLLOW_LINKS)) {
           final ObjectId tree = insertTree(inserter, entry);
           treeFormatter.append(entryName, FileMode.TREE, tree);

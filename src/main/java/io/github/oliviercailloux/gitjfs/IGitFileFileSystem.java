@@ -11,6 +11,7 @@ import org.eclipse.jgit.internal.storage.file.FileRepository;
  * @see IGitFileSystemProvider#newFileSystemFromGitDir(Path)
  * @see IGitFileSystemProvider#newFileSystemFromFileRepository(FileRepository)
  */
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface IGitFileFileSystem extends IGitFileSystem {
 
   /**

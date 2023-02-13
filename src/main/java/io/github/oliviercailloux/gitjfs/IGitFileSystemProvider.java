@@ -28,6 +28,7 @@ import org.eclipse.jgit.internal.storage.dfs.DfsRepository;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Repository;
 
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface IGitFileSystemProvider {
 
   String getScheme();

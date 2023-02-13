@@ -68,6 +68,7 @@ import org.eclipse.jgit.lib.ObjectId;
  * @see #getRelativePath(String...)
  * @see #graph()
  */
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public interface IGitFileSystem extends AutoCloseable {
 
   /**

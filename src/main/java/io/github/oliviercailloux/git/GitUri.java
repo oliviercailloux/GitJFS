@@ -200,12 +200,12 @@ public class GitUri {
     return new GitUri(uri);
   }
 
-  final private URI uri;
+  private final URI uri;
 
   GitUri(URI uri) {
     checkArgument(uri.isAbsolute());
     checkArgument(!uri.isOpaque());
-    /** This throws an IllegalArgumentException if the scheme is not permitted. */
+    /* This throws an IllegalArgumentException if the scheme is not permitted. */
     final GitScheme scheme = GitScheme.valueOf(uri.getScheme().toUpperCase());
 
     if (scheme == GitScheme.FILE) {
