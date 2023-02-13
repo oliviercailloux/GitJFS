@@ -214,7 +214,7 @@ abstract class GitAbsolutePath extends GitPathImpl {
 
     final byte[] bytes = getFileSystem().getBytes(gitObject.getObjectId());
 
-    /**
+    /*
      * Should not log here: if the charset is not UTF-8, this messes up the output.
      */
     // LOGGER.debug("Read: {}.", new String(bytes, StandardCharsets.UTF_8));

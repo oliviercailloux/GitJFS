@@ -11,6 +11,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public class JGitTests {
   @Test
   void testCreateRepo() throws Exception {

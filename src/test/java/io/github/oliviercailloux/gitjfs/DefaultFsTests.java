@@ -72,7 +72,7 @@ public class DefaultFsTests {
     }
 
     {
-      /**
+      /*
        * File system created by the provider (but not by invoking explicitly new using Uri), and is
        * then available through get. In violation of the getFS contract (or it should be taken to
        * mean that the invocation of new using Uri can be implicit, that is, not done by the user,
@@ -90,7 +90,7 @@ public class DefaultFsTests {
       assertThrows(IOException.class, () -> Files.readString(root));
     }
 
-    /**
+    /*
      * Judging from
      * https://github.com/openjdk/jdk/tree/master/src/java.base/windows/classes/sun/nio/fs, it seems
      * to me that \ is a root component only relative path, and hence getFileName on it returns
@@ -106,7 +106,7 @@ public class DefaultFsTests {
       assertEquals("C:\\some\\path", somePath.toString());
       assertTrue(somePath.toUri().toString().endsWith("/C:/some/path"), "" + somePath.toUri());
 
-      /** Unsupported unser Jimfs. */
+      /* Unsupported under Jimfs. */
       assertThrows(InvalidPathException.class, () -> jimFs.getPath("\\"));
     }
 
@@ -121,7 +121,7 @@ public class DefaultFsTests {
       assertEquals(0, root.getNameCount());
       assertEquals("/", root.getRoot().toString());
     }
-    /**
+    /*
      * That’s how they test OS:
      * https://github.com/openjdk/jdk/blob/master/test/jdk/java/nio/file/Path/PathOps.java.
      */

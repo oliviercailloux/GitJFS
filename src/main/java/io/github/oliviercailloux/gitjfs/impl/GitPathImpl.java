@@ -463,7 +463,7 @@ public abstract class GitPathImpl implements GitPath {
   @SuppressWarnings("resource")
   @Override
   public URI toUri() {
-    /**
+    /*
      * I do not use UriBuilder because it performs “contextual encoding of characters not permitted
      * in the corresponding URI component following the rules of the
      * application/x-www-form-urlencoded media type for query parameters”, and therefore encodes /
@@ -488,7 +488,7 @@ public abstract class GitPathImpl implements GitPath {
     final URI uriBasis = URI_UNCHECKER.getUsing(
         () -> new URI(fsUri.getScheme(), fsUri.getAuthority(), fsUri.getPath(), null, null));
     final String qMark = query.isEmpty() ? "" : "?";
-    /**
+    /*
      * As the query part is encoded already, we don’t want to use the URI constructor with query
      * parameter, which would in turn encode the %-escapers as if they were %-signs.
      */
@@ -589,7 +589,7 @@ public abstract class GitPathImpl implements GitPath {
   DirectoryStream<GitPathImpl> newDirectoryStream(Filter<? super GitPathImpl> filter)
       throws IOException {
     final GitPathRootShaImpl sha = toAbsolutePathAsAbsolutePath().getRoot().toSha();
-    /**
+    /*
      * Note: this can’t be moved to GitAbsolutePath: a directory stream on a relative path differs
      * by resolving against a relative path.
      */

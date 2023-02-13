@@ -55,6 +55,10 @@ public class GitFileFileSystemImpl extends GitFileFileSystem {
     this.repository = repository;
   }
 
+  protected GitFileSystemImpl delegate() {
+    return delegate;
+  }
+
   /**
    * @deprecated Temporary workaround.
    */
@@ -66,10 +70,6 @@ public class GitFileFileSystemImpl extends GitFileFileSystem {
   @Override
   public Path getGitDir() {
     return repository.getDirectory().toPath();
-  }
-
-  protected GitFileSystemImpl delegate() {
-    return delegate;
   }
 
   @Override

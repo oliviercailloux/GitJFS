@@ -75,7 +75,7 @@ class GitFileSystems {
     checkArgument(Objects.equals(gitFileUri.getAuthority(), FILE_AUTHORITY),
         "Unexpected authority: " + gitFileUri.getAuthority() + ", expected " + FILE_AUTHORITY
             + ".");
-    /**
+    /*
      * It follows from these two checks that the uri is absolute (it has a scheme) and hierarchical
      * (it was further parsed).
      */
@@ -83,7 +83,7 @@ class GitFileSystems {
     verify(!gitFileUri.isOpaque());
 
     final String gitDirStr = gitFileUri.getPath();
-    /** An hierarchical absolute URI has an absolute path. */
+    /* An hierarchical absolute URI has an absolute path. */
     verifyNotNull(gitDirStr);
     checkArgument(gitDirStr.endsWith("/"));
     final Path gitDir = Path.of(gitDirStr);
@@ -179,7 +179,7 @@ class GitFileSystems {
       @SuppressWarnings("resource")
       final String name = getName(gitDfsFs.getRepository());
       verifyNotNull(name);
-      /**
+      /*
        * I’d like not to have the possible / in name to reach the URI and act as segment separator
        * in the URI path. But it might be that encoding it with %2F as usual will make it equivalent
        * to a /, at least, the URI class acts so. So I’d have to encode / to something else using a

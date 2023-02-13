@@ -98,7 +98,7 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
 
   @Override
   public String getGitRef() {
-    /**
+    /*
      * Returning a JGit Ref here is another possibility. But 1) a Ref is much more complex than
      * required at this level: JGit’s Ref objects include symbolic refs, they may be peeled or non
      * peeled, and they may refer to git objects that are not commits. Git refs as considered here

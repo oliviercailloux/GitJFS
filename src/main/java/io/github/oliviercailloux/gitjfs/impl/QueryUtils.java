@@ -16,9 +16,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 class QueryUtils {
-  final static public PercentEscaper QUERY_ENTRY_ESCAPER =
+  public static final PercentEscaper QUERY_ENTRY_ESCAPER =
       new PercentEscaper("-_.*~!$'(),;@:/+?", false);
-  final static private PercentEscaper RESTRICTED_ESCAPER = new PercentEscaper("-_.*%", false);
+  private static final PercentEscaper RESTRICTED_ESCAPER = new PercentEscaper("-_.*%", false);
 
   /**
    * Thanks to https://stackoverflow.com/a/13592567/.
@@ -46,7 +46,7 @@ class QueryUtils {
     final int idx = it.indexOf("=");
     final String key = idx > 0 ? it.substring(0, idx) : it;
     final String value = idx > 0 && it.length() > idx + 1 ? it.substring(idx + 1) : null;
-    /**
+    /*
      * Because URLDecoder only decodes very restricted strings, I need to encode a bit more before
      * decoding. Importantly, I need to encode plus, otherwise converted back to space instead of
      * left alone. But I need to leave % alone as this indicates a percent-escape, not a percent

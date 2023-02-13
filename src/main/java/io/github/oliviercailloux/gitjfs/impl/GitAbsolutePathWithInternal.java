@@ -184,7 +184,7 @@ class GitAbsolutePathWithInternal extends GitAbsolutePath {
       return (RevTree) objectId;
     }
     final RevTree tree = getFileSystem().getRevTree(obj.getObjectId());
-    /**
+    /*
      * If was do not follow links, then we’ve set both real and link, as I am a tree, or, one of
      * them was set already. If was follow links, then was set or we’ve set only the link.
      */

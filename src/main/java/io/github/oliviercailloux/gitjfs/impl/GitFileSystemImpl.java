@@ -134,7 +134,7 @@ class GitFileSystemImpl extends GitFileSystem {
       }
 
       if (hasNext) {
-        /**
+        /*
          * Do not use walk.getPathString(): this seems to return not the complete path but the path
          * within this tree (i.e., the name).
          */
@@ -501,7 +501,7 @@ class GitFileSystemImpl extends GitFileSystem {
 
     final ImmutableSet<ObjectId> allCommits;
     try (RevWalk walk = new RevWalk(reader)) {
-      /**
+      /*
        * Not easy to get really all commits, so we are content with returning only the ones
        * reachable from some ref: this is the normal behavior of git, it seems
        * (https://stackoverflow.com/questions/4786972).
@@ -634,7 +634,7 @@ class GitFileSystemImpl extends GitFileSystem {
       throw new ClosedFileSystemException();
     }
 
-    /**
+    /*
      * https://www.eclipse.org/forums/index.php?t=msg&th=1103986
      *
      * Set up a stack of trees, starting with a one-entry stack containing the root tree.
@@ -672,8 +672,8 @@ class GitFileSystemImpl extends GitFileSystem {
 
         final String currentName = remainingNames.pop();
         LOGGER.debug("Considering '{}'.", currentName);
-        if (currentName.equals(".")) {
-        } else if (currentName.equals("")) {
+        if (currentName.equals(".") || currentName.equals("")) {
+          /* Do nothing. */
         } else if (currentName.equals("..")) {
           trees.pop();
           if (trees.isEmpty()) {
@@ -725,9 +725,9 @@ class GitFileSystemImpl extends GitFileSystem {
             switch (behavior) {
               case DO_NOT_FOLLOW_LINKS:
                 if (!remainingNames.isEmpty()) {
-                  throw new PathCouldNotBeFoundException(String.format(
-                      "Path '%s' is a link, but I may not follow the links, and the remaining path is '%s'.",
-                      currentPath, remainingNames));
+                  throw new PathCouldNotBeFoundException(
+                      String.format("Path '%s' is a link, but I may not follow the links, "
+                          + "and the remaining path is '%s'.", currentPath, remainingNames));
                 }
                 followThisLink = false;
                 break;
@@ -754,7 +754,7 @@ class GitFileSystemImpl extends GitFileSystem {
                   currentPath, targetNames);
               currentPath = currentPath.getParent();
               targetNames.reverse().stream().forEachOrdered(remainingNames::addFirst);
-              /**
+              /*
                * Need to reset, otherwise searching again (in the next iteration) will fail.
                */
               treeWalk.reset(trees.peek());

@@ -33,7 +33,7 @@ public class GitPathRootRefImpl extends GitPathRootImpl implements GitPathRootRe
     final GitPathRootShaImpl newSha;
     if (newIdOpt.isPresent()) {
       final ObjectId newId = newIdOpt.get();
-      /**
+      /*
        * We try to hold to our existing reference if possible, because it may contain valuable cache
        * data.
        */

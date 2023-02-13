@@ -21,7 +21,7 @@ abstract class GitRelativePath extends GitPathImpl {
   private static final Logger LOGGER = LoggerFactory.getLogger(GitRelativePath.class);
 
   private static Path toJimFsRelativePath(List<String> names) throws InvalidPathException {
-    /**
+    /*
      * NOT equivalent to resolve each component to the previous part, starting with JIM_FS_EMPTY: if
      * one starts with a slash, this makes the resulting path absolute.
      */

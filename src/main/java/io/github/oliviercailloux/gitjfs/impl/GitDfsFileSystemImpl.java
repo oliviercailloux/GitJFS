@@ -46,13 +46,13 @@ public class GitDfsFileSystemImpl extends GitDfsFileSystem {
     this.repository = repository;
   }
 
+  protected GitFileSystemImpl delegate() {
+    return delegate;
+  }
+
   @Override
   public DfsRepository getRepository() {
     return repository;
-  }
-
-  protected GitFileSystemImpl delegate() {
-    return delegate;
   }
 
   @Override

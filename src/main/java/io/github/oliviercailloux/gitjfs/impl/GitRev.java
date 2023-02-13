@@ -51,9 +51,9 @@ class GitRev {
   }
 
   /**
-   * @param shortRefOrCommitId must start with <tt>refs/</tt> or <tt>heads/</tt> or <tt>tags/</tt>
-   *        or be a commit id. May not end with <tt>/</tt>, nor contain <tt>//</tt> or <tt>\</tt>.
-   * @return
+   * @param shortRefOrCommitId must start with <code>refs/</code> or <code>heads/</code> or
+   *        <code>tags/</code> or be a commit id. May not end with <code>/</code>, nor contain
+   *        <code>//</code> or <code>\</code>.
    * @throws InvalidPathException
    */
   public static GitRev shortRefOrCommitId(String shortRefOrCommitId) throws InvalidPathException {
@@ -141,8 +141,8 @@ class GitRev {
   /**
    * Must contain a ref.
    *
-   * @return starts with <tt>refs/</tt>, does not contain <tt>//</tt>, does not contain <tt>\</tt>,
-   *         does not end with <tt>/</tt>
+   * @return starts with <code>refs/</code>, does not contain <code>//</code>, does not contain
+   *         <code>\</code>, does not end with <code>/</code>
    */
   public String getGitRef() {
     checkState(gitRef != null);

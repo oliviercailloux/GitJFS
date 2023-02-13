@@ -139,7 +139,7 @@ public class GitFileSystemProviderImpl extends GitFileSystemProvider {
   public GitFileFileSystemImpl newFileSystemFromGitDir(Path gitDir)
       throws FileSystemAlreadyExistsException, UnsupportedOperationException, NoSuchFileException,
       IOException {
-    /**
+    /*
      * Implementation note: this method also throws UnsupportedOperationException if the path exists
      * but is not associated with the default file system. But this is not part of the public
      * contract.
@@ -148,11 +148,13 @@ public class GitFileSystemProviderImpl extends GitFileSystemProvider {
     fses.verifyCanCreateFileSystemCorrespondingTo(gitDir);
 
     if (!Files.exists(gitDir)) {
-      /**
+      /*
        * Not clear whether the specs mandate UnsupportedOperationException here. I follow the
        * observed behavior of ZipFileSystemProvider in not throwing UOE:
-       * https://github.com/openjdk/jdk17/blob/master/src/jdk.zipfs/share/classes/jdk/nio/zipfs/ZipFileSystemProvider.java,
-       * https://github.com/openjdk/jdk11/blob/master/src/jdk.zipfs/share/classes/jdk/nio/zipfs/ZipFileSystemProvider.java.
+       * https://github.com/openjdk/jdk17/blob/master/src/jdk.zipfs/share/classes/jdk/nio/zipfs/
+       * ZipFileSystemProvider.java,
+       * https://github.com/openjdk/jdk11/blob/master/src/jdk.zipfs/share/classes/jdk/nio/zipfs/
+       * ZipFileSystemProvider.java.
        *
        * ZipFSP throws a FileSystemNotFoundException but I favor NoSuchFileE, more explicit and
        * aligned to observed behavior of default FS (default FS throws NSFE when invoked with a non

@@ -5,13 +5,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.TimeZone;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.revwalk.RevCommit;
 
 /**
  * An immutable commit, with author and committer information (name, email, date).
@@ -104,7 +100,7 @@ public class Commit {
     if (!(o2 instanceof Commit)) {
       return false;
     }
-    /**
+    /*
      * We could get happy with comparing only the ids, as a random collision is extremely unlikely.
      * But non-random collisions appear to be not so unlikely
      * (https://stackoverflow.com/q/10434326), so let’s compare everything just to be sure not to

@@ -445,14 +445,13 @@ public interface IGitFileSystem extends AutoCloseable {
    * <b>Usage Example:</b> Suppose we want to make "joe" the owner of a file:
    *
    * <pre>
-   * UserPrincipalLookupService lookupService = FileSystems.getDefault().getUserPrincipalLookupService();
+   * UserPrincipalLookupService lookupService = ….getUserPrincipalLookupService();
    * Files.setOwner(path, lookupService.lookupPrincipalByName("joe"));
    * </pre>
    *
+   * @return The {@code UserPrincipalLookupService} for this file system
    * @throws UnsupportedOperationException If this {@code FileSystem} does not does have a lookup
    *         service
-   *
-   * @return The {@code UserPrincipalLookupService} for this file system
    */
   UserPrincipalLookupService getUserPrincipalLookupService();
 
