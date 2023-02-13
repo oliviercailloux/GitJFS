@@ -11,17 +11,12 @@ import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.Set;
+import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.ObjectId;
 
 @SuppressWarnings("resource")
 public abstract class ForwardingGitFileFileSystem extends GitFileFileSystem {
   protected abstract GitFileFileSystem delegate();
-
-  @Override
-  public URI toUri() {
-    final IGitFileFileSystem delegate = delegate();
-    return delegate.toUri();
-  }
 
   @Override
   public Path getGitDir() {
@@ -36,15 +31,9 @@ public abstract class ForwardingGitFileFileSystem extends GitFileFileSystem {
   }
 
   @Override
-  public GitPath getAbsolutePath(String first, String... more) throws InvalidPathException {
+  public GitPathRoot getPathRoot(String rootStringForm) throws InvalidPathException {
     final IGitFileFileSystem delegate = delegate();
-    return delegate.getAbsolutePath(first, more);
-  }
-
-  @Override
-  public GitPath getAbsolutePath(ObjectId commitId, String internalPath1, String... internalPath) {
-    final IGitFileFileSystem delegate = delegate();
-    return delegate.getAbsolutePath(commitId, internalPath1, internalPath);
+    return delegate.getPathRoot(rootStringForm);
   }
 
   @Override
@@ -60,9 +49,15 @@ public abstract class ForwardingGitFileFileSystem extends GitFileFileSystem {
   }
 
   @Override
-  public GitPathRoot getPathRoot(String rootStringForm) throws InvalidPathException {
+  public GitPath getAbsolutePath(String first, String... more) throws InvalidPathException {
     final IGitFileFileSystem delegate = delegate();
-    return delegate.getPathRoot(rootStringForm);
+    return delegate.getAbsolutePath(first, more);
+  }
+
+  @Override
+  public GitPath getAbsolutePath(ObjectId commitId, String internalPath1, String... internalPath) {
+    final IGitFileFileSystem delegate = delegate();
+    return delegate.getAbsolutePath(commitId, internalPath1, internalPath);
   }
 
   @Override
@@ -84,14 +79,21 @@ public abstract class ForwardingGitFileFileSystem extends GitFileFileSystem {
   }
 
   @Override
-  public GitFileSystemProvider provider() {
+  public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException {
     final IGitFileFileSystem delegate = delegate();
-    return delegate.provider();
+    return delegate.diff(first, second);
   }
 
   @Override
-  public void close() throws IOException {
-    delegate().close();
+  public URI toUri() {
+    final IGitFileFileSystem delegate = delegate();
+    return delegate.toUri();
+  }
+
+  @Override
+  public GitFileSystemProvider provider() {
+    final IGitFileFileSystem delegate = delegate();
+    return delegate.provider();
   }
 
   @Override
@@ -146,5 +148,10 @@ public abstract class ForwardingGitFileFileSystem extends GitFileFileSystem {
   public WatchService newWatchService() throws IOException {
     final IGitFileFileSystem delegate = delegate();
     return delegate.newWatchService();
+  }
+
+  @Override
+  public void close() throws IOException {
+    delegate().close();
   }
 }

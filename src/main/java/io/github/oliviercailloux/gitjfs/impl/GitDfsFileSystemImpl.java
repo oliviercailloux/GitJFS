@@ -56,23 +56,13 @@ public class GitDfsFileSystemImpl extends GitDfsFileSystem {
   }
 
   @Override
-  public URI toUri() {
-    return delegate.toUri();
-  }
-
-  @Override
   public GitPath getPath(String first, String... more) {
     return delegate.getPath(first, more);
   }
 
   @Override
-  public GitPath getAbsolutePath(String first, String... more) throws InvalidPathException {
-    return delegate.getAbsolutePath(first, more);
-  }
-
-  @Override
-  public GitPath getAbsolutePath(ObjectId commitId, String internalPath1, String... internalPath) {
-    return delegate.getAbsolutePath(commitId, internalPath1, internalPath);
+  public GitPathRoot getPathRoot(String rootStringForm) throws InvalidPathException {
+    return delegate.getPathRoot(rootStringForm);
   }
 
   @Override
@@ -86,8 +76,13 @@ public class GitDfsFileSystemImpl extends GitDfsFileSystem {
   }
 
   @Override
-  public GitPathRoot getPathRoot(String rootStringForm) throws InvalidPathException {
-    return delegate.getPathRoot(rootStringForm);
+  public GitPath getAbsolutePath(String first, String... more) throws InvalidPathException {
+    return delegate.getAbsolutePath(first, more);
+  }
+
+  @Override
+  public GitPath getAbsolutePath(ObjectId commitId, String internalPath1, String... internalPath) {
+    return delegate.getAbsolutePath(commitId, internalPath1, internalPath);
   }
 
   @Override
@@ -106,14 +101,18 @@ public class GitDfsFileSystemImpl extends GitDfsFileSystem {
   }
 
   @Override
-  public GitFileSystemProvider provider() {
-    return delegate.provider();
+  public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException {
+    return delegate.diff(first, second);
   }
 
   @Override
-  public void close() throws IOException {
-    delegate().close();
-    delegate.provider().getGitFileSystems().hasBeenClosedEvent(this);
+  public URI toUri() {
+    return delegate.toUri();
+  }
+
+  @Override
+  public GitFileSystemProvider provider() {
+    return delegate.provider();
   }
 
   @Override
@@ -162,7 +161,8 @@ public class GitDfsFileSystemImpl extends GitDfsFileSystem {
   }
 
   @Override
-  public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException {
-    return delegate.diff(first, second);
+  public void close() throws IOException {
+    delegate().close();
+    delegate.provider().getGitFileSystems().hasBeenClosedEvent(this);
   }
 }

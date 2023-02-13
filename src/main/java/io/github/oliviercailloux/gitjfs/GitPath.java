@@ -140,6 +140,17 @@ import org.eclipse.jgit.lib.Ref;
  */
 public interface GitPath extends Path {
 
+  @Override
+  GitFileSystem getFileSystem();
+
+  /**
+   * Returns {@code true} iff this path has a root component.
+   *
+   * @return {@code true} if, and only if, this path is absolute
+   */
+  @Override
+  boolean isAbsolute();
+
   /**
    * Returns a {@code Path} object representing the absolute path of this path.
    *
@@ -154,17 +165,6 @@ public interface GitPath extends Path {
    */
   @Override
   GitPath toAbsolutePath();
-
-  @Override
-  GitFileSystem getFileSystem();
-
-  /**
-   * Returns {@code true} iff this path has a root component.
-   *
-   * @return {@code true} if, and only if, this path is absolute
-   */
-  @Override
-  boolean isAbsolute();
 
   /**
    * {@inheritDoc}
