@@ -23,15 +23,17 @@ import org.eclipse.jgit.lib.ObjectId;
  */
 public interface GitPathRoot extends GitPath {
 
+  GitPathRootSha toSha() throws IOException, NoSuchFileException;
+
   GitPathRootShaCached toShaCached() throws IOException, NoSuchFileException;
 
-  ImmutableList<? extends GitPathRootSha> getParentCommits()
-      throws IOException, NoSuchFileException;
-
   /**
-   * If {@link Files#exists} returns {@code false}, an exception is thrown.
+   * Indicates whether this root component contains a commit id or a git ref.
+   *
+   * @return {@code true} iff this root component contains a commit id; equivalently, iff this root
+   *         component does not contain a git ref.
    */
-  Commit getCommit() throws IOException, NoSuchFileException;
+  boolean isCommitId();
 
   /**
    * Returns the commit id contained in this root component, if any. The method is called
@@ -44,6 +46,14 @@ public interface GitPathRoot extends GitPath {
    * @see #isCommitId()
    */
   ObjectId getStaticCommitId();
+
+  /**
+   * Indicates whether this root component contains a git ref or a commit id.
+   *
+   * @return {@code true} iff this root component contains a git ref; equivalently, iff this root
+   *         component does not contain a commit id.
+   */
+  boolean isRef();
 
   /**
    * Returns the git ref contained in this root component, if any. The returned string starts with
@@ -59,20 +69,12 @@ public interface GitPathRoot extends GitPath {
   String getGitRef();
 
   /**
-   * Indicates whether this root component contains a commit id or a git ref.
-   *
-   * @return {@code true} iff this root component contains a commit id; equivalently, iff this root
-   *         component does not contain a git ref.
+   * If {@link Files#exists} returns {@code false}, an exception is thrown.
    */
-  boolean isCommitId();
+  Commit getCommit() throws IOException, NoSuchFileException;
 
-  /**
-   * Indicates whether this root component contains a git ref or a commit id.
-   *
-   * @return {@code true} iff this root component contains a git ref; equivalently, iff this root
-   *         component does not contain a commit id.
-   */
-  boolean isRef();
+  ImmutableList<? extends GitPathRootSha> getParentCommits()
+      throws IOException, NoSuchFileException;
 
   /**
    * Returns {@code null}.
@@ -85,20 +87,21 @@ public interface GitPathRoot extends GitPath {
 
   /**
    * Returns this path.
+   *
+   * @deprecated No reason to call this.
    */
   @Override
+  @Deprecated
   GitPathRoot toAbsolutePath();
 
   /**
    * Returns itself.
    *
    * @return itself
+   *
+   * @deprecated No reason to call this.
    */
   @Override
+  @Deprecated
   GitPathRoot getRoot();
-
-  @Override
-  GitFileSystem getFileSystem();
-
-  GitPathRootSha toSha() throws IOException, NoSuchFileException;
 }
