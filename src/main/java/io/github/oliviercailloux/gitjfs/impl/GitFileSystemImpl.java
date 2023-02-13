@@ -394,6 +394,21 @@ class GitFileSystemImpl extends GitFileSystem {
   }
 
   @Override
+  public GitPathRootImpl getPathRoot(String rootStringForm) throws InvalidPathException {
+    return GitPathRootImpl.given(this, GitRev.stringForm(rootStringForm));
+  }
+
+  @Override
+  public GitPathRootShaImpl getPathRoot(ObjectId commitId) {
+    return new GitPathRootShaImpl(this, GitRev.commitId(commitId), Optional.empty());
+  }
+
+  @Override
+  public GitPathRootRefImpl getPathRootRef(String rootStringForm) throws InvalidPathException {
+    return new GitPathRootRefImpl(this, GitRev.stringForm(rootStringForm));
+  }
+
+  @Override
   public GitPathImpl getAbsolutePath(String first, String... more) throws InvalidPathException {
     final String rootStringForm;
     final ImmutableList<String> internalPath;
@@ -434,28 +449,64 @@ class GitFileSystemImpl extends GitFileSystem {
   }
 
   @Override
-  public GitPathRootImpl getPathRoot(String rootStringForm) throws InvalidPathException {
-    return GitPathRootImpl.given(this, GitRev.stringForm(rootStringForm));
-  }
-
-  @Override
-  public GitPathRootRefImpl getPathRootRef(String rootStringForm) throws InvalidPathException {
-    return new GitPathRootRefImpl(this, GitRev.stringForm(rootStringForm));
-  }
-
-  @Override
-  public GitPathRootShaImpl getPathRoot(ObjectId commitId) {
-    return new GitPathRootShaImpl(this, GitRev.commitId(commitId), Optional.empty());
-  }
-
-  @Override
   public GitPathImpl getRelativePath(String... names) throws InvalidPathException {
     return GitRelativePath.relative(this, ImmutableList.copyOf(names));
   }
 
   @Override
-  public Iterable<FileStore> getFileStores() {
-    throw new UnsupportedOperationException();
+  public ImmutableGraph<GitPathRootSha> graph() throws IOException {
+    final ImmutableSet<ObjectId> commits = getCommits();
+    final ImmutableSet<GitPathRootShaImpl> paths =
+        commits.stream().map(this::getPathRoot).collect(ImmutableSet.toImmutableSet());
+  
+    // FIXME
+    // final TFunction<GitPathRootShaImpl, List<GitPathRootShaImpl>> getParents =
+    // Unchecker.<NoSuchFileException, VerifyException>wrappingWith(VerifyException::new)
+    // .wrapFunction(p -> p.getParentCommits());
+    final Function<GitPathRootShaImpl, List<GitPathRootShaImpl>> getParents =
+        IO_UNCHECKER.wrapFunction(p -> p.getParentCommits());
+  
+    return ImmutableGraph
+        .copyOf(GraphUtils.asGraph(paths, p -> ImmutableList.of(), getParents::apply));
+  }
+
+  @Override
+  public ImmutableSet<GitPathRootRef> refs() throws IOException {
+    if (!isOpen) {
+      throw new ClosedFileSystemException();
+    }
+  
+    final List<Ref> refs = repository.getRefDatabase().getRefsByPrefix(Constants.R_REFS);
+    return refs.stream().map(r -> getPathRootRef("/" + r.getName() + "/"))
+        .collect(ImmutableSet.toImmutableSet());
+  }
+
+  @Override
+  public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second)
+      throws IOException, NoSuchFileException {
+    /* TODO check same fs. */
+    final CanonicalTreeParser firstTreeIter = new CanonicalTreeParser();
+    firstTreeIter.reset(reader, getRevCommit(first.getCommit().id()).getTree().getId());
+    final CanonicalTreeParser secondTreeIter = new CanonicalTreeParser();
+    secondTreeIter.reset(reader, getRevCommit(second.getCommit().id()).getTree().getId());
+  
+    try (Git git = new Git(repository)) {
+      final List<DiffEntry> diff =
+          git.diff().setNewTree(secondTreeIter).setOldTree(firstTreeIter).call();
+      return ImmutableSet.copyOf(diff);
+    } catch (GitAPIException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  @Override
+  public URI toUri() {
+    return gitProvider.getGitFileSystems().toUri(this);
+  }
+
+  @Override
+  public GitFileSystemProviderImpl provider() {
+    return gitProvider;
   }
 
   @Override
@@ -467,55 +518,8 @@ class GitFileSystemImpl extends GitFileSystem {
   }
 
   @Override
-  public ImmutableGraph<GitPathRootSha> graph() throws IOException {
-    final ImmutableSet<ObjectId> commits = getCommits();
-    final ImmutableSet<GitPathRootShaImpl> paths =
-        commits.stream().map(this::getPathRoot).collect(ImmutableSet.toImmutableSet());
-
-    // FIXME
-    // final TFunction<GitPathRootShaImpl, List<GitPathRootShaImpl>> getParents =
-    // Unchecker.<NoSuchFileException, VerifyException>wrappingWith(VerifyException::new)
-    // .wrapFunction(p -> p.getParentCommits());
-    final Function<GitPathRootShaImpl, List<GitPathRootShaImpl>> getParents =
-        IO_UNCHECKER.wrapFunction(p -> p.getParentCommits());
-
-    return ImmutableGraph
-        .copyOf(GraphUtils.asGraph(paths, p -> ImmutableList.of(), getParents::apply));
-  }
-
-  @Override
-  public ImmutableSet<GitPathRootRef> refs() throws IOException {
-    if (!isOpen) {
-      throw new ClosedFileSystemException();
-    }
-
-    final List<Ref> refs = repository.getRefDatabase().getRefsByPrefix(Constants.R_REFS);
-    return refs.stream().map(r -> getPathRootRef("/" + r.getName() + "/"))
-        .collect(ImmutableSet.toImmutableSet());
-  }
-
-  private ImmutableSet<ObjectId> getCommits() throws UncheckedIOException {
-    if (!isOpen) {
-      throw new ClosedFileSystemException();
-    }
-
-    final ImmutableSet<ObjectId> allCommits;
-    try (RevWalk walk = new RevWalk(reader)) {
-      /*
-       * Not easy to get really all commits, so we are content with returning only the ones
-       * reachable from some ref: this is the normal behavior of git, it seems
-       * (https://stackoverflow.com/questions/4786972).
-       */
-      final List<Ref> refs = repository.getRefDatabase().getRefsByPrefix(Constants.R_REFS);
-      walk.setRetainBody(false);
-      for (Ref ref : refs) {
-        walk.markStart(walk.parseCommit(ref.getLeaf().getObjectId()));
-      }
-      allCommits = ImmutableSet.copyOf(walk);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-    return allCommits;
+  public Iterable<FileStore> getFileStores() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -542,6 +546,77 @@ class GitFileSystemImpl extends GitFileSystem {
   @Override
   public boolean isReadOnly() {
     return true;
+  }
+
+  @Override
+  public WatchService newWatchService() throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Set<String> supportedFileAttributeViews() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void close() {
+    isOpen = false;
+  
+    List<RuntimeException> closeExceptions = new ArrayList<>();
+    try {
+      reader.close();
+    } catch (RuntimeException e) {
+      closeExceptions.add(e);
+    }
+    if (shouldCloseRepository) {
+      try {
+        repository.close();
+      } catch (RuntimeException e) {
+        closeExceptions.add(e);
+      }
+    }
+    //@formatter:off
+    for (@SuppressWarnings("resource") DirectoryStream<GitPathImpl> closeable : toClose) {
+      //@formatter:on
+      try {
+        closeable.close();
+      } catch (IOException e) {
+        throw new VerifyException("Close should not throw exceptions.", e);
+      } catch (RuntimeException e) {
+        closeExceptions.add(e);
+      }
+    }
+    if (!closeExceptions.isEmpty()) {
+      final RuntimeException first = closeExceptions.remove(0);
+      if (!closeExceptions.isEmpty()) {
+        LOGGER.error("Further problems while closing: {}.", closeExceptions);
+      }
+      throw first;
+    }
+  }
+
+  private ImmutableSet<ObjectId> getCommits() throws UncheckedIOException {
+    if (!isOpen) {
+      throw new ClosedFileSystemException();
+    }
+  
+    final ImmutableSet<ObjectId> allCommits;
+    try (RevWalk walk = new RevWalk(reader)) {
+      /*
+       * Not easy to get really all commits, so we are content with returning only the ones
+       * reachable from some ref: this is the normal behavior of git, it seems
+       * (https://stackoverflow.com/questions/4786972).
+       */
+      final List<Ref> refs = repository.getRefDatabase().getRefsByPrefix(Constants.R_REFS);
+      walk.setRetainBody(false);
+      for (Ref ref : refs) {
+        walk.markStart(walk.parseCommit(ref.getLeaf().getObjectId()));
+      }
+      allCommits = ImmutableSet.copyOf(walk);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    return allCommits;
   }
 
   byte[] getBytes(AnyObjectId objectId) throws IOException {
@@ -575,16 +650,6 @@ class GitFileSystemImpl extends GitFileSystem {
     return dirStream;
   }
 
-  @Override
-  public WatchService newWatchService() throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public GitFileSystemProviderImpl provider() {
-    return gitProvider;
-  }
-
   long getSize(GitObject gitObject) throws IOException {
     if (!isOpen) {
       throw new ClosedFileSystemException();
@@ -596,11 +661,6 @@ class GitFileSystemImpl extends GitFileSystem {
     LOGGER.debug("Got size: {}.", size);
     reader.setStreamFileThreshold(previousThreshold);
     return size;
-  }
-
-  @Override
-  public Set<String> supportedFileAttributeViews() {
-    throw new UnsupportedOperationException();
   }
 
   RevTree getRevTree(ObjectId treeId) throws IOException {
@@ -784,11 +844,6 @@ class GitFileSystemImpl extends GitFileSystem {
     return target;
   }
 
-  @Override
-  public URI toUri() {
-    return gitProvider.getGitFileSystems().toUri(this);
-  }
-
   /**
    * Note that if this method returns an object id, it means that this object id exists in the
    * database. But it may be a blob, a tree, … (at least if the given git ref is a tag, not sure
@@ -811,62 +866,7 @@ class GitFileSystemImpl extends GitFileSystem {
     return Optional.of(possibleCommitId);
   }
 
-  @Override
-  public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second)
-      throws IOException, NoSuchFileException {
-    /* TODO check same fs. */
-    final CanonicalTreeParser firstTreeIter = new CanonicalTreeParser();
-    firstTreeIter.reset(reader, getRevCommit(first.getCommit().id()).getTree().getId());
-    final CanonicalTreeParser secondTreeIter = new CanonicalTreeParser();
-    secondTreeIter.reset(reader, getRevCommit(second.getCommit().id()).getTree().getId());
-
-    try (Git git = new Git(repository)) {
-      final List<DiffEntry> diff =
-          git.diff().setNewTree(secondTreeIter).setOldTree(firstTreeIter).call();
-      return ImmutableSet.copyOf(diff);
-    } catch (GitAPIException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
   void toClose(DirectoryStream<GitPathImpl> stream) {
     toClose.add(stream);
-  }
-
-  @Override
-  public void close() {
-    isOpen = false;
-
-    List<RuntimeException> closeExceptions = new ArrayList<>();
-    try {
-      reader.close();
-    } catch (RuntimeException e) {
-      closeExceptions.add(e);
-    }
-    if (shouldCloseRepository) {
-      try {
-        repository.close();
-      } catch (RuntimeException e) {
-        closeExceptions.add(e);
-      }
-    }
-    //@formatter:off
-    for (@SuppressWarnings("resource") DirectoryStream<GitPathImpl> closeable : toClose) {
-      //@formatter:on
-      try {
-        closeable.close();
-      } catch (IOException e) {
-        throw new VerifyException("Close should not throw exceptions.", e);
-      } catch (RuntimeException e) {
-        closeExceptions.add(e);
-      }
-    }
-    if (!closeExceptions.isEmpty()) {
-      final RuntimeException first = closeExceptions.remove(0);
-      if (!closeExceptions.isEmpty()) {
-        LOGGER.error("Further problems while closing: {}.", closeExceptions);
-      }
-      throw first;
-    }
   }
 }

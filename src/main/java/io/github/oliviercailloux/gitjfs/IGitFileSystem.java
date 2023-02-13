@@ -238,13 +238,6 @@ public interface IGitFileSystem extends AutoCloseable {
    */
   ImmutableSet<GitPathRootRef> refs() throws IOException;
 
-  /**
-   * Returns the provider that created this file system.
-   *
-   * @return The provider that created this file system.
-   */
-  GitFileSystemProvider provider();
-
   public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException;
 
   /**
@@ -262,6 +255,13 @@ public interface IGitFileSystem extends AutoCloseable {
    * @return the URI that identifies this file system.
    */
   URI toUri();
+
+  /**
+   * Returns the provider that created this file system.
+   *
+   * @return The provider that created this file system.
+   */
+  GitFileSystemProvider provider();
 
   /**
    * Retrieve the set of all commits of this repository reachable from some ref by following the
