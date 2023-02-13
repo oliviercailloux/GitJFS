@@ -88,6 +88,8 @@ public interface GitPathRoot extends GitPath {
   /**
    * Returns this path.
    *
+   * @return itself
+   *
    * @deprecated No reason to call this.
    */
   @Override
@@ -95,7 +97,7 @@ public interface GitPathRoot extends GitPath {
   GitPathRoot toAbsolutePath();
 
   /**
-   * Returns itself.
+   * Returns this path.
    *
    * @return itself
    *
