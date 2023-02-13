@@ -850,8 +850,9 @@ class GitFileSystemImpl extends GitFileSystem {
         closeExceptions.add(e);
       }
     }
-    for (@SuppressWarnings("resource")
-    DirectoryStream<GitPathImpl> closeable : toClose) {
+    //@formatter:off
+    for (@SuppressWarnings("resource") DirectoryStream<GitPathImpl> closeable : toClose) {
+      //@formatter:on
       try {
         closeable.close();
       } catch (IOException e) {
