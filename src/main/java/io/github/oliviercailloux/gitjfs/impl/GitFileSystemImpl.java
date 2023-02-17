@@ -14,6 +14,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.PeekingIterator;
 import com.google.common.collect.Streams;
 import com.google.common.graph.ImmutableGraph;
+import com.google.common.graph.MutableGraph;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import io.github.oliviercailloux.gitjfs.GitFileSystem;
@@ -47,7 +48,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Stream;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -379,12 +379,12 @@ class GitFileSystemImpl extends GitFileSystem {
     this.toClose = new LinkedHashSet<>();
   }
 
-  private ImmutableSet<ObjectId> getCommits() throws UncheckedIOException {
+  private ImmutableSet<RevCommit> getCommits() throws IOException {
     if (!isOpen) {
       throw new ClosedFileSystemException();
     }
-  
-    final ImmutableSet<ObjectId> allCommits;
+
+    final ImmutableSet<RevCommit> allCommits;
     try (RevWalk walk = new RevWalk(reader)) {
       /*
        * Not easy to get really all commits, so we are content with returning only the ones
@@ -397,8 +397,6 @@ class GitFileSystemImpl extends GitFileSystem {
         walk.markStart(walk.parseCommit(ref.getLeaf().getObjectId()));
       }
       allCommits = ImmutableSet.copyOf(walk);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
     }
     return allCommits;
   }
@@ -678,6 +676,10 @@ class GitFileSystemImpl extends GitFileSystem {
     return new GitPathRootShaImpl(this, GitRev.commitId(commitId), Optional.empty());
   }
 
+  private GitPathRootShaCachedImpl getPathRoot(RevCommit commit) {
+    return new GitPathRootShaCachedImpl(this, GitRev.commitId(commit), commit);
+  }
+
   @Override
   public GitPathRootRefImpl getPathRootRef(String rootStringForm) throws InvalidPathException {
     return new GitPathRootRefImpl(this, GitRev.stringForm(rootStringForm));
@@ -730,19 +732,12 @@ class GitFileSystemImpl extends GitFileSystem {
 
   @Override
   public ImmutableGraph<GitPathRootSha> graph() throws IOException {
-    final ImmutableSet<ObjectId> commits = getCommits();
-    final ImmutableSet<GitPathRootShaImpl> paths =
-        commits.stream().map(this::getPathRoot).collect(ImmutableSet.toImmutableSet());
-  
-    // FIXME
-    // final TFunction<GitPathRootShaImpl, List<GitPathRootShaImpl>> getParents =
-    // Unchecker.<NoSuchFileException, VerifyException>wrappingWith(VerifyException::new)
-    // .wrapFunction(p -> p.getParentCommits());
-    final Function<GitPathRootShaImpl, List<GitPathRootShaImpl>> getParents =
-        IO_UNCHECKER.wrapFunction(p -> p.getParentCommits());
-  
-    return ImmutableGraph
-        .copyOf(GraphUtils.asGraph(paths, p -> ImmutableList.of(), getParents::apply));
+    final ImmutableSet<RevCommit> commits = getCommits();
+
+    final MutableGraph<RevCommit> cG = GraphUtils.asGraph(commits, p -> ImmutableList.of(),
+        c -> ImmutableList.copyOf(c.getParents()));
+    final MutableGraph<GitPathRootSha> gr = GraphUtils.transform(cG, this::getPathRoot);
+    return ImmutableGraph.copyOf(gr);
   }
 
   @Override
@@ -786,10 +781,8 @@ class GitFileSystemImpl extends GitFileSystem {
 
   @Override
   public ImmutableSet<Path> getRootDirectories() throws UncheckedIOException {
-    final ImmutableSet<ObjectId> commits = getCommits();
-    final ImmutableSet<Path> paths =
-        commits.stream().map(this::getPathRoot).collect(ImmutableSet.toImmutableSet());
-    return paths;
+    final ImmutableSet<RevCommit> commits = IO_UNCHECKER.getUsing(this::getCommits);
+    return commits.stream().map(this::getPathRoot).collect(ImmutableSet.toImmutableSet());
   }
 
   @Override
