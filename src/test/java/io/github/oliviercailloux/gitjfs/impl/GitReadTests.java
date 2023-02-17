@@ -425,8 +425,8 @@ public class GitReadTests {
     }
   }
 
-  private MutableGraph<GitPathRootSha> toGraph(final ImmutableList<ObjectId> commits,
-      final Function<? super ObjectId, GitPathRootSha> oidToP) {
+  private MutableGraph<GitPathRootSha> toGraph(ImmutableList<ObjectId> commits,
+      Function<? super ObjectId, GitPathRootSha> oidToP) {
     return GraphUtils.transformed(GraphUtils.asGraph(commits),
         Maps.asMap(ImmutableSet.copyOf(commits), oidToP));
   }
