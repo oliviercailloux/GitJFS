@@ -26,6 +26,16 @@
 			</build>
 		</profile>
 	</profiles>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<configuration>
+					<configLocation>./Practical Google checks.xml</configLocation>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 	<dependencies>
 		<dependency>
 			<groupId>io.github.oliviercailloux</groupId>
