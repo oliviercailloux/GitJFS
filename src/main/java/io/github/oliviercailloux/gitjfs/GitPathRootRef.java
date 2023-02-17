@@ -20,8 +20,8 @@ public interface GitPathRootRef extends GitPathRoot {
    * Throws an exception.
    *
    * @return nothing
-   * @deprecated No reason to call this.
    * @throws IllegalStateException always
+   * @deprecated No reason to call this.
    */
   @Override
   @Deprecated

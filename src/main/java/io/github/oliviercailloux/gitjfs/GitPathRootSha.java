@@ -8,7 +8,6 @@ public interface GitPathRootSha extends GitPathRoot {
    * Returns this path.
    *
    * @return itself
-   *
    * @deprecated No reason to call this.
    */
   @Override
@@ -42,8 +41,8 @@ public interface GitPathRootSha extends GitPathRoot {
    * Throws an exception.
    *
    * @return nothing
-   * @deprecated No reason to call this.
    * @throws IllegalStateException always
+   * @deprecated No reason to call this.
    */
   @Override
   @Deprecated
