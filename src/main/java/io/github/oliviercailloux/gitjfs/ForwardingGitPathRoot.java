@@ -115,7 +115,17 @@ public abstract class ForwardingGitPathRoot implements GitPathRoot {
   }
 
   @Override
+  public boolean startsWith(String other) {
+    return delegate().startsWith(other);
+  }
+
+  @Override
   public boolean endsWith(Path other) {
+    return delegate().endsWith(other);
+  }
+
+  @Override
+  public boolean endsWith(String other) {
     return delegate().endsWith(other);
   }
 
@@ -183,16 +193,6 @@ public abstract class ForwardingGitPathRoot implements GitPathRoot {
   @Override
   public void forEach(Consumer<? super Path> action) {
     delegate().forEach(action);
-  }
-
-  @Override
-  public boolean startsWith(String other) {
-    return delegate().startsWith(other);
-  }
-
-  @Override
-  public boolean endsWith(String other) {
-    return delegate().endsWith(other);
   }
 
   @Override

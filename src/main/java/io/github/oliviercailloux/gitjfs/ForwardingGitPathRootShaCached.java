@@ -120,7 +120,17 @@ public abstract class ForwardingGitPathRootShaCached implements GitPathRootShaCa
   }
 
   @Override
+  public boolean startsWith(String other) {
+    return delegate().startsWith(other);
+  }
+
+  @Override
   public boolean endsWith(Path other) {
+    return delegate().endsWith(other);
+  }
+
+  @Override
+  public boolean endsWith(String other) {
     return delegate().endsWith(other);
   }
 
@@ -156,11 +166,6 @@ public abstract class ForwardingGitPathRootShaCached implements GitPathRootShaCa
   }
 
   @Override
-  public boolean endsWith(String other) {
-    return delegate().endsWith(other);
-  }
-
-  @Override
   public int compareTo(Path other) {
     return delegate().compareTo(other);
   }
@@ -193,11 +198,6 @@ public abstract class ForwardingGitPathRootShaCached implements GitPathRootShaCa
   @Override
   public void forEach(Consumer<? super Path> action) {
     delegate().forEach(action);
-  }
-
-  @Override
-  public boolean startsWith(String other) {
-    return delegate().startsWith(other);
   }
 
   @Override
