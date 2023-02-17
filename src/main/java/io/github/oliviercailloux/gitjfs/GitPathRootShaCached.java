@@ -2,9 +2,17 @@ package io.github.oliviercailloux.gitjfs;
 
 public interface GitPathRootShaCached extends GitPathRootSha {
 
+  /**
+   * Returns this path.
+   *
+   * @return itself
+   *
+   * @deprecated No reason to call this.
+   */
   @Override
-  Commit getCommit();
+  @Deprecated
+  GitPathRootShaCached toShaCached();
 
   @Override
-  GitPathRootShaCached toShaCached();
+  Commit getCommit();
 }

@@ -4,8 +4,15 @@ import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 
 public interface GitPathRootSha extends GitPathRoot {
-
+  /**
+   * Returns this path.
+   *
+   * @return itself
+   *
+   * @deprecated No reason to call this.
+   */
   @Override
+  @Deprecated
   GitPathRootSha toSha();
 
   @Override

@@ -48,6 +48,7 @@ public abstract class ForwardingGitPathRootSha implements GitPathRootSha {
     return delegate().getParent();
   }
 
+  @Deprecated
   @Override
   public GitPathRootSha toSha() {
     return delegate().toSha();

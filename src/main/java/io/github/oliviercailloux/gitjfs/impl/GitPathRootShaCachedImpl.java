@@ -21,11 +21,13 @@ public class GitPathRootShaCachedImpl extends GitPathRootShaImpl implements GitP
     checkArgument(commit.getId().equals(gitRev.getCommitId()));
   }
 
+  @Deprecated
   @Override
   public GitPathRootShaCachedImpl toSha() {
     return this;
   }
 
+  @Deprecated
   @Override
   public GitPathRootShaCachedImpl toShaCached() {
     return this;

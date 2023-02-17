@@ -25,6 +25,7 @@ public class GitPathRootShaImpl extends GitPathRootImpl implements GitPathRootSh
     revCommit = commit.isPresent() ? commit : null;
   }
 
+  @Deprecated
   @Override
   public GitPathRootShaImpl toSha() {
     return this;
