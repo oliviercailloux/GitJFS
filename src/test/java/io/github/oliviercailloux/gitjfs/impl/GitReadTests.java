@@ -403,6 +403,29 @@ public class GitReadTests {
   }
 
   @Test
+  void testParentCommits() throws Exception {
+    try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
+      final ImmutableList<ObjectId> commits = JGit.createRepoWithLink(repo);
+      assertEquals(4, commits.size());
+      final ObjectId commit1 = commits.get(0);
+      final ObjectId commit2 = commits.get(1);
+      final ObjectId commit3 = commits.get(2);
+      final ObjectId commit4 = commits.get(3);
+      try (GitFileSystem gitFs =
+          GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
+        final GitPathRootSha p1 = gitFs.getPathRoot(commit1);
+        final GitPathRootSha p2 = gitFs.getPathRoot(commit2);
+        final GitPathRootSha p3 = gitFs.getPathRoot(commit3);
+        final GitPathRootSha p4 = gitFs.getPathRoot(commit4);
+        assertEquals(ImmutableList.of(), p1.getParentCommits());
+        assertEquals(ImmutableList.of(p1), p2.getParentCommits());
+        assertEquals(ImmutableList.of(p2), p3.getParentCommits());
+        assertEquals(ImmutableList.of(p3), p4.getParentCommits());
+      }
+    }
+  }
+
+  @Test
   void testGraph() throws Exception {
     try (
         DfsRepository repository = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
