@@ -20,7 +20,7 @@ import com.google.common.jimfs.Jimfs;
 import io.github.oliviercailloux.gitjfs.GitFileSystem;
 import io.github.oliviercailloux.gitjfs.GitPathRoot;
 import io.github.oliviercailloux.gitjfs.GitPathRootRef;
-import io.github.oliviercailloux.gitjfs.GitPathRootSha;
+import io.github.oliviercailloux.gitjfs.GitPathRootShaCached;
 import io.github.oliviercailloux.gitjfs.PathCouldNotBeFoundException;
 import io.github.oliviercailloux.jaris.collections.GraphUtils;
 import java.io.IOException;
@@ -731,12 +731,12 @@ class GitFileSystemImpl extends GitFileSystem {
   }
 
   @Override
-  public ImmutableGraph<GitPathRootSha> graph() throws IOException {
+  public ImmutableGraph<GitPathRootShaCached> graph() throws IOException {
     final ImmutableSet<RevCommit> commits = getCommits();
 
     final MutableGraph<RevCommit> cG = GraphUtils.asGraph(commits, p -> ImmutableList.of(),
         c -> ImmutableList.copyOf(c.getParents()));
-    final MutableGraph<GitPathRootSha> gr = GraphUtils.transform(cG, this::getPathRoot);
+    final MutableGraph<GitPathRootShaCached> gr = GraphUtils.transform(cG, this::getPathRoot);
     return ImmutableGraph.copyOf(gr);
   }
 

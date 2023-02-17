@@ -225,7 +225,7 @@ public interface IGitFileSystem extends AutoCloseable {
    *         which correspond to some ref.
    * @throws IOException if an I/O error occurs
    */
-  ImmutableGraph<GitPathRootSha> graph() throws IOException;
+  ImmutableGraph<GitPathRootShaCached> graph() throws IOException;
 
   /**
    * Returns a set containing one git path root for each git ref (of the form <code>/refs/…</code>)

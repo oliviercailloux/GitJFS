@@ -10,6 +10,7 @@ import io.github.oliviercailloux.gitjfs.GitPath;
 import io.github.oliviercailloux.gitjfs.GitPathRoot;
 import io.github.oliviercailloux.gitjfs.GitPathRootRef;
 import io.github.oliviercailloux.gitjfs.GitPathRootSha;
+import io.github.oliviercailloux.gitjfs.GitPathRootShaCached;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileStore;
@@ -108,7 +109,7 @@ public class GitFileFileSystemImpl extends GitFileFileSystem {
   }
 
   @Override
-  public ImmutableGraph<GitPathRootSha> graph() throws IOException {
+  public ImmutableGraph<GitPathRootShaCached> graph() throws IOException {
     return delegate.graph();
   }
 
