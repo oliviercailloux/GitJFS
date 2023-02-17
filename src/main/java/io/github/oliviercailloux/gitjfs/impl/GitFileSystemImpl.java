@@ -405,7 +405,7 @@ class GitFileSystemImpl extends GitFileSystem {
     if (!isOpen) {
       throw new ClosedFileSystemException();
     }
-  
+
     final ObjectLoader fileLoader = reader.open(objectId, Constants.OBJ_BLOB);
     verify(fileLoader.getType() == Constants.OBJ_BLOB);
     final byte[] bytes = fileLoader.getBytes();
@@ -421,9 +421,9 @@ class GitFileSystemImpl extends GitFileSystem {
     if (!isOpen) {
       throw new ClosedFileSystemException();
     }
-  
+
     LOGGER.debug("Iterating over {}.", tree);
-  
+
     final TreeWalk treeWalk = new TreeWalk(reader);
     treeWalk.addTree(tree);
     treeWalk.setRecursive(false);
@@ -436,7 +436,7 @@ class GitFileSystemImpl extends GitFileSystem {
     if (!isOpen) {
       throw new ClosedFileSystemException();
     }
-  
+
     final int previousThreshold = reader.getStreamFileThreshold();
     LOGGER.debug("Retrieving size of {}.", gitObject);
     final long size = reader.getObjectSize(gitObject.getObjectId(), ObjectReader.OBJ_ANY);
@@ -449,7 +449,7 @@ class GitFileSystemImpl extends GitFileSystem {
     if (!isOpen) {
       throw new ClosedFileSystemException();
     }
-  
+
     final RevTree revTree;
     try (RevWalk walk = new RevWalk(reader)) {
       revTree = walk.parseTree(treeId);
@@ -462,7 +462,7 @@ class GitFileSystemImpl extends GitFileSystem {
     if (!isOpen) {
       throw new ClosedFileSystemException();
     }
-  
+
     final RevCommit revCommit;
     try (RevWalk walk = new RevWalk(reader)) {
       revCommit = walk.parseCommit(possibleCommitId);
@@ -475,7 +475,7 @@ class GitFileSystemImpl extends GitFileSystem {
     if (!isOpen) {
       throw new ClosedFileSystemException();
     }
-  
+
     /*
      * https://www.eclipse.org/forums/index.php?t=msg&th=1103986
      *
@@ -490,15 +490,15 @@ class GitFileSystemImpl extends GitFileSystem {
      */
     final Deque<ObjectId> trees = new ArrayDeque<>();
     trees.addFirst(rootTree);
-  
+
     final Set<TreeVisit> visited = new LinkedHashSet<>();
-  
+
     final Deque<String> remainingNames =
         new ArrayDeque<>(ImmutableList.copyOf(Iterables.transform(relativePath, Path::toString)));
-  
+
     Path currentPath = JIM_FS_SLASH;
     GitObject currentGitObject = GitObject.given(currentPath, rootTree, FileMode.TREE);
-  
+
     try (TreeWalk treeWalk = new TreeWalk(repository, reader)) {
       treeWalk.addTree(rootTree);
       LOGGER.debug("Starting search for {}, {}.", relativePath, behavior);
@@ -511,7 +511,7 @@ class GitFileSystemImpl extends GitFileSystem {
               "Should not cycle when not following links, but seems to cycle anyway: " + visit);
           throw new NoContextNoSuchFileException("Cycle at " + remainingNames);
         }
-  
+
         final String currentName = remainingNames.pop();
         LOGGER.debug("Considering '{}'.", currentName);
         if (currentName.equals(".") || currentName.equals("")) {
@@ -531,26 +531,26 @@ class GitFileSystemImpl extends GitFileSystem {
         } else {
           currentPath = currentPath.resolve(currentName);
           LOGGER.debug("Moved current to: {}.", currentPath);
-  
+
           final String absoluteCurrent = currentPath.toString();
           verify(absoluteCurrent.startsWith("/"));
           final PathFilter filter = PathFilter.create(absoluteCurrent.substring(1));
           treeWalk.setFilter(filter);
           treeWalk.setRecursive(false);
-  
+
           final boolean toNext = treeWalk.next();
           if (!toNext) {
             throw new NoContextNoSuchFileException("Could not find " + currentPath);
           }
           verify(filter.isDone(treeWalk));
-  
+
           final FileMode fileMode = treeWalk.getFileMode();
           assert (fileMode != null);
           final ObjectId objectId = treeWalk.getObjectId(0);
           currentGitObject = GitObject.given(currentPath, objectId, fileMode);
-  
+
           verify(!objectId.equals(ObjectId.zeroId()), absoluteCurrent);
-  
+
           if (fileMode.equals(FileMode.REGULAR_FILE) || fileMode.equals(FileMode.EXECUTABLE_FILE)) {
             if (!remainingNames.isEmpty()) {
               throw new NoContextNoSuchFileException(String.format(
@@ -635,12 +635,12 @@ class GitFileSystemImpl extends GitFileSystem {
     if (!isOpen) {
       throw new ClosedFileSystemException();
     }
-  
+
     final Ref ref = repository.exactRef(gitRef);
     if (ref == null) {
       return Optional.empty();
     }
-  
+
     verify(ref.getName().equals(gitRef));
     verify(!ref.isSymbolic());
     final ObjectId possibleCommitId = ref.getObjectId();
@@ -745,7 +745,7 @@ class GitFileSystemImpl extends GitFileSystem {
     if (!isOpen) {
       throw new ClosedFileSystemException();
     }
-  
+
     final List<Ref> refs = repository.getRefDatabase().getRefsByPrefix(Constants.R_REFS);
     return refs.stream().map(r -> getPathRootRef("/" + r.getName() + "/"))
         .collect(ImmutableSet.toImmutableSet());
@@ -759,7 +759,7 @@ class GitFileSystemImpl extends GitFileSystem {
     firstTreeIter.reset(reader, getRevCommit(first.getCommit().id()).getTree().getId());
     final CanonicalTreeParser secondTreeIter = new CanonicalTreeParser();
     secondTreeIter.reset(reader, getRevCommit(second.getCommit().id()).getTree().getId());
-  
+
     try (Git git = new Git(repository)) {
       final List<DiffEntry> diff =
           git.diff().setNewTree(secondTreeIter).setOldTree(firstTreeIter).call();
@@ -829,7 +829,7 @@ class GitFileSystemImpl extends GitFileSystem {
   @Override
   public void close() {
     isOpen = false;
-  
+
     List<RuntimeException> closeExceptions = new ArrayList<>();
     try {
       reader.close();
