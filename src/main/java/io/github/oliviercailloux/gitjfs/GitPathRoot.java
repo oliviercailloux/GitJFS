@@ -23,6 +23,50 @@ import org.eclipse.jgit.lib.ObjectId;
  */
 public interface GitPathRoot extends GitPath {
 
+  /**
+   * Returns {@code true}.
+   *
+   * @return true
+   *
+   * @deprecated No reason to call this.
+   */
+  @Override
+  @Deprecated
+  boolean isAbsolute();
+
+  /**
+   * Returns this path.
+   *
+   * @return itself
+   *
+   * @deprecated No reason to call this.
+   */
+  @Override
+  @Deprecated
+  GitPathRoot toAbsolutePath();
+
+  /**
+   * Returns this path.
+   *
+   * @return itself
+   *
+   * @deprecated No reason to call this.
+   */
+  @Override
+  @Deprecated
+  GitPathRoot getRoot();
+
+  /**
+   * Returns {@code null}.
+   *
+   * @return {@code null}
+   *
+   * @deprecated No reason to call this.
+   */
+  @Override
+  @Deprecated
+  GitPath getParent();
+
   GitPathRootSha toSha() throws IOException, NoSuchFileException;
 
   GitPathRootShaCached toShaCached() throws IOException, NoSuchFileException;
@@ -75,35 +119,4 @@ public interface GitPathRoot extends GitPath {
 
   ImmutableList<? extends GitPathRootSha> getParentCommits()
       throws IOException, NoSuchFileException;
-
-  /**
-   * Returns {@code null}.
-   *
-   * @return {@code null}
-   */
-  @Override
-  @Deprecated
-  GitPath getParent();
-
-  /**
-   * Returns this path.
-   *
-   * @return itself
-   *
-   * @deprecated No reason to call this.
-   */
-  @Override
-  @Deprecated
-  GitPathRoot toAbsolutePath();
-
-  /**
-   * Returns this path.
-   *
-   * @return itself
-   *
-   * @deprecated No reason to call this.
-   */
-  @Override
-  @Deprecated
-  GitPathRoot getRoot();
 }

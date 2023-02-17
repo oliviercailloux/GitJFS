@@ -20,49 +20,26 @@ public abstract class ForwardingGitPathRootShaCached implements GitPathRootShaCa
   protected abstract GitPathRootShaCached delegate();
 
   @Override
-  public GitPathRootSha toSha() {
-    return delegate().toSha();
+  public GitFileSystem getFileSystem() {
+    return delegate().getFileSystem();
   }
 
+  @Deprecated
   @Override
-  public GitPathRootShaCached toShaCached() {
-    return delegate().toShaCached();
+  public boolean isAbsolute() {
+    return delegate().isAbsolute();
   }
 
+  @Deprecated
   @Override
-  public ImmutableList<? extends GitPathRootSha> getParentCommits()
-      throws IOException, NoSuchFileException {
-    return delegate().getParentCommits();
+  public GitPathRoot toAbsolutePath() {
+    return delegate().toAbsolutePath();
   }
 
+  @Deprecated
   @Override
-  public Commit getCommit() {
-    return delegate().getCommit();
-  }
-
-  @Override
-  public ObjectId getStaticCommitId() {
-    return delegate().getStaticCommitId();
-  }
-
-  @Override
-  public String getGitRef() {
-    return delegate().getGitRef();
-  }
-
-  @Override
-  public void forEach(Consumer<? super Path> action) {
-    delegate().forEach(action);
-  }
-
-  @Override
-  public boolean isCommitId() {
-    return delegate().isCommitId();
-  }
-
-  @Override
-  public boolean isRef() {
-    return delegate().isRef();
+  public GitPathRoot getRoot() {
+    return delegate().getRoot();
   }
 
   @Deprecated
@@ -72,28 +49,47 @@ public abstract class ForwardingGitPathRootShaCached implements GitPathRootShaCa
   }
 
   @Override
-  public Spliterator<Path> spliterator() {
-    return delegate().spliterator();
+  public GitPathRootSha toSha() {
+    return delegate().toSha();
   }
 
   @Override
-  public GitPathRoot toAbsolutePath() {
-    return delegate().toAbsolutePath();
+  public GitPathRootShaCached toShaCached() {
+    return delegate().toShaCached();
+  }
+
+  @Deprecated
+  @Override
+  public boolean isCommitId() {
+    return delegate().isCommitId();
   }
 
   @Override
-  public GitPathRoot getRoot() {
-    return delegate().getRoot();
+  public ObjectId getStaticCommitId() {
+    return delegate().getStaticCommitId();
+  }
+
+  @Deprecated
+  @Override
+  public boolean isRef() {
+    return delegate().isRef();
+  }
+
+  @Deprecated
+  @Override
+  public String getGitRef() throws IllegalStateException {
+    return delegate().getGitRef();
   }
 
   @Override
-  public GitFileSystem getFileSystem() {
-    return delegate().getFileSystem();
+  public Commit getCommit() {
+    return delegate().getCommit();
   }
 
   @Override
-  public boolean isAbsolute() {
-    return delegate().isAbsolute();
+  public ImmutableList<? extends GitPathRootSha> getParentCommits()
+      throws IOException, NoSuchFileException {
+    return delegate().getParentCommits();
   }
 
   @Override
@@ -152,11 +148,6 @@ public abstract class ForwardingGitPathRootShaCached implements GitPathRootShaCa
   }
 
   @Override
-  public boolean startsWith(String other) {
-    return delegate().startsWith(other);
-  }
-
-  @Override
   public GitPath toRealPath(LinkOption... options)
       throws IOException, PathCouldNotBeFoundException, NoSuchFileException {
     return delegate().toRealPath(options);
@@ -188,6 +179,26 @@ public abstract class ForwardingGitPathRootShaCached implements GitPathRootShaCa
   }
 
   @Override
+  public Iterator<Path> iterator() {
+    return delegate().iterator();
+  }
+
+  @Override
+  public Spliterator<Path> spliterator() {
+    return delegate().spliterator();
+  }
+
+  @Override
+  public void forEach(Consumer<? super Path> action) {
+    delegate().forEach(action);
+  }
+
+  @Override
+  public boolean startsWith(String other) {
+    return delegate().startsWith(other);
+  }
+
+  @Override
   public Path resolveSibling(Path other) {
     return delegate().resolveSibling(other);
   }
@@ -211,10 +222,5 @@ public abstract class ForwardingGitPathRootShaCached implements GitPathRootShaCa
   @Override
   public WatchKey register(WatchService watcher, Kind<?>... events) throws IOException {
     return delegate().register(watcher, events);
-  }
-
-  @Override
-  public Iterator<Path> iterator() {
-    return delegate().iterator();
   }
 }

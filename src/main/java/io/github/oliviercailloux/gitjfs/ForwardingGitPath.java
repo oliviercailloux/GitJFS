@@ -26,21 +26,6 @@ public abstract class ForwardingGitPath implements GitPath {
   protected abstract GitPath delegate();
 
   @Override
-  public void forEach(Consumer<? super Path> action) {
-    delegate().forEach(action);
-  }
-
-  @Override
-  public Spliterator<Path> spliterator() {
-    return delegate().spliterator();
-  }
-
-  @Override
-  public GitPath toAbsolutePath() {
-    return delegate().toAbsolutePath();
-  }
-
-  @Override
   public GitFileSystem getFileSystem() {
     return delegate().getFileSystem();
   }
@@ -48,6 +33,11 @@ public abstract class ForwardingGitPath implements GitPath {
   @Override
   public boolean isAbsolute() {
     return delegate().isAbsolute();
+  }
+
+  @Override
+  public GitPath toAbsolutePath() {
+    return delegate().toAbsolutePath();
   }
 
   @Override
@@ -116,19 +106,9 @@ public abstract class ForwardingGitPath implements GitPath {
   }
 
   @Override
-  public boolean startsWith(String other) {
-    return delegate().startsWith(other);
-  }
-
-  @Override
   public GitPath toRealPath(LinkOption... options)
       throws IOException, PathCouldNotBeFoundException, NoSuchFileException {
     return delegate().toRealPath(options);
-  }
-
-  @Override
-  public boolean endsWith(String other) {
-    return delegate().endsWith(other);
   }
 
   @Override
@@ -149,6 +129,31 @@ public abstract class ForwardingGitPath implements GitPath {
   @Override
   public String toString() {
     return delegate().toString();
+  }
+
+  @Override
+  public Iterator<Path> iterator() {
+    return delegate().iterator();
+  }
+
+  @Override
+  public Spliterator<Path> spliterator() {
+    return delegate().spliterator();
+  }
+
+  @Override
+  public void forEach(Consumer<? super Path> action) {
+    delegate().forEach(action);
+  }
+
+  @Override
+  public boolean startsWith(String other) {
+    return delegate().startsWith(other);
+  }
+
+  @Override
+  public boolean endsWith(String other) {
+    return delegate().endsWith(other);
   }
 
   @Override
@@ -175,10 +180,5 @@ public abstract class ForwardingGitPath implements GitPath {
   @Override
   public WatchKey register(WatchService watcher, Kind<?>... events) throws IOException {
     return delegate().register(watcher, events);
-  }
-
-  @Override
-  public Iterator<Path> iterator() {
-    return delegate().iterator();
   }
 }
