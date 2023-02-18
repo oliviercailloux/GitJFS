@@ -238,6 +238,12 @@ public interface IGitFileSystem extends AutoCloseable {
    */
   ImmutableSet<GitPathRootRef> refs() throws IOException;
 
+  /**
+   * @param first its file system should equal this file system.
+   * @param second its file system should equal this file system.
+   * @return a diff between both commits, and an empty set if they are the same commit.
+   * @throws IOException if an I/O error occurs
+   */
   public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException;
 
   /**
