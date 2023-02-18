@@ -56,16 +56,6 @@ class GitFileSystems {
     }
   }
 
-  String getExistingUniqueId(GitFileSystem gitFs) {
-    /* FIXME */
-    final BiMap<?, ? extends GitFileSystem> cachedSystems = cachedSystems(gitFs);
-
-    @SuppressWarnings("unlikely-arg-type")
-    final Object key = cachedSystems.inverse().get(gitFs);
-    checkArgument(key != null);
-    return key.toString();
-  }
-
   /**
    * @param gitFileUri must parse as a git file-based filesystem URI.
    * @return the absolute path in the URI, representing the git directory that this URI refers to.
