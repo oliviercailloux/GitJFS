@@ -13,6 +13,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
@@ -244,7 +245,8 @@ public interface IGitFileSystem extends AutoCloseable {
    * @return a diff between both commits, and an empty set if they are the same commit.
    * @throws IOException if an I/O error occurs
    */
-  public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second) throws IOException;
+  public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second)
+      throws IOException, NoSuchFileException;
 
   /**
    * <p>

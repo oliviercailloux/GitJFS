@@ -254,7 +254,7 @@ public class GitFileSystemProviderImpl extends GitFileSystemProvider {
 
   @Override
   public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options,
-      FileAttribute<?>... attrs) throws IOException {
+      FileAttribute<?>... attrs) throws IOException, NoSuchFileException {
     checkArgument(path instanceof GitPathImpl);
     if (attrs.length >= 1) {
       throw new ReadOnlyFileSystemException();

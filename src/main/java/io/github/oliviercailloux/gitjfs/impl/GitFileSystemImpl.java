@@ -755,14 +755,15 @@ class GitFileSystemImpl extends GitFileSystem {
   public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second)
       throws IOException, NoSuchFileException {
     /*
-     * Check same fs (to ensure equality of that the underlying readers and repositories). This
-     * should not create problems even in case of filtering fses: a filtering fs should receive as
+     * Check same fs (to ensure equality of the underlying readers and repositories). This should
+     * not create problems even in case of filtering fses: a filtering fs should receive as
      * arguments paths coming from itself (that is, filtered), as requesting to a filtering fs a
      * diff involving non-filtered paths doesn’t make much sense; and the filtering fs could then
      * delegate using the underlying fses (which should be equal again, by recursion).
      */
     checkArgument(this.equals(first.getFileSystem()));
-    checkArgument(first.getFileSystem().equals(second.getFileSystem()));
+    checkArgument(this.equals(second.getFileSystem()));
+    verify(first.getFileSystem().equals(second.getFileSystem()));
 
     final CanonicalTreeParser firstTreeIter = new CanonicalTreeParser();
     firstTreeIter.reset(reader, getRevCommit(first.getCommit().id()).getTree().getId());
