@@ -23,6 +23,7 @@ import io.github.oliviercailloux.gitjfs.GitPath;
 import io.github.oliviercailloux.gitjfs.GitPathRoot;
 import io.github.oliviercailloux.gitjfs.GitPathRootRef;
 import io.github.oliviercailloux.gitjfs.GitPathRootSha;
+import io.github.oliviercailloux.gitjfs.GitPathRootShaCached;
 import io.github.oliviercailloux.gitjfs.PathCouldNotBeFoundException;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.GitStringObject;
 import io.github.oliviercailloux.jaris.collections.GraphUtils;
@@ -37,6 +38,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.NotLinkException;
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -426,6 +428,38 @@ public class GitReadTests {
   }
 
   @Test
+  void testCaching() throws Exception {
+    try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
+      final ImmutableList<ObjectId> commits = JGit.createRepoWithLink(repo);
+      assertEquals(4, commits.size());
+      final ObjectId commit1 = commits.get(0);
+      final ObjectId commit2 = commits.get(1);
+      final ObjectId commit3 = commits.get(2);
+      final ObjectId commit4 = commits.get(3);
+      try (GitFileSystem fs =
+          GitFileSystemProvider.instance().newFileSystemFromDfsRepository(repo)) {
+        final GitPathRootSha p1 = fs.getPathRoot(commit1);
+        final GitPathRootSha p2 = fs.getPathRoot(commit2);
+        final GitPathRootSha p3 = fs.getPathRoot(commit3);
+        final GitPathRootSha p4 = fs.getPathRoot(commit4);
+        final GitPathRootShaCached p1cached = p1.toShaCached();
+        final GitPathRootShaCached p2cached = p2.toShaCached();
+        final GitPathRootShaCached p3cached = p3.toShaCached();
+        final GitPathRootShaCached p4cached = p4.toShaCached();
+        assertEquals(p1cached, p1);
+        assertEquals(p2cached, p2);
+        assertEquals(p3cached, p3);
+        assertEquals(p4cached, p4);
+        assertEquals(commit1, p1cached.getCommit().id());
+        assertEquals(commit2, p2cached.getCommit().id());
+        assertEquals(commit3, p3cached.getCommit().id());
+        assertEquals(commit4, p4cached.getCommit().id());
+        assertEquals(commit1, p1.getCommit().id());
+      }
+    }
+  }
+
+  @Test
   void testGraph() throws Exception {
     try (
         DfsRepository repository = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
@@ -444,6 +478,22 @@ public class GitReadTests {
           GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repository)) {
         final Function<? super ObjectId, GitPathRootSha> oToP = gitFs::getPathRoot;
         assertEquals(toGraph(commits, oToP), gitFs.graph());
+      }
+    }
+  }
+
+  @Test
+  void testGraphReading() throws Exception {
+    try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
+      final ImmutableList<ObjectId> commits = JGit.createRepoWithLink(repo);
+      assertEquals(4, commits.size());
+      try (GitFileSystem fs =
+          GitFileSystemProvider.instance().newFileSystemFromDfsRepository(repo)) {
+
+        final Set<GitPathRootShaCached> nodes = fs.graph().nodes();
+        final ImmutableSet<ObjectId> graphIds =
+            nodes.stream().map(p -> p.getCommit().id()).collect(ImmutableSet.toImmutableSet());
+        assertEquals(ImmutableSet.copyOf(commits), graphIds);
       }
     }
   }

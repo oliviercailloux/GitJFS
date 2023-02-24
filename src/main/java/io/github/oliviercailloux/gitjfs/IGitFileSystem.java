@@ -221,6 +221,10 @@ public interface IGitFileSystem extends AutoCloseable {
    * am not sure). https://math.stackexchange.com/questions/1374802
    * <p>
    * The set of nodes in the graph equals the one returned by {@link #getRootDirectories()}.
+   * <p>
+   * The version adopted here maximizes simplicity of use at the price of memory efficiency, as it
+   * caches all commits (meaning not only the parent information, required for building the graph,
+   * but also all information found in the {@link Commit} instances, such as author information).
    *
    * @return a directed acyclic graph (thus, irreflexive), not necessarily connected; all leaves of
    *         which correspond to some ref.

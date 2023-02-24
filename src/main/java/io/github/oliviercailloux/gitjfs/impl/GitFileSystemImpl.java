@@ -379,7 +379,7 @@ class GitFileSystemImpl extends GitFileSystem {
     this.toClose = new LinkedHashSet<>();
   }
 
-  private ImmutableSet<RevCommit> getCommits() throws IOException {
+  private ImmutableSet<RevCommit> getCommits(boolean retainBodies) throws IOException {
     if (!isOpen) {
       throw new ClosedFileSystemException();
     }
@@ -392,11 +392,15 @@ class GitFileSystemImpl extends GitFileSystem {
        * (https://stackoverflow.com/questions/4786972).
        */
       final List<Ref> refs = repository.getRefDatabase().getRefsByPrefix(Constants.R_REFS);
-      walk.setRetainBody(false);
+      walk.setRetainBody(retainBodies);
       for (Ref ref : refs) {
         walk.markStart(walk.parseCommit(ref.getLeaf().getObjectId()));
       }
       allCommits = ImmutableSet.copyOf(walk);
+    }
+    if (retainBodies) {
+      verify(allCommits.stream().allMatch(c -> c.getAuthorIdent() != null));
+      verify(allCommits.stream().allMatch(c -> c.getParents() != null));
     }
     return allCommits;
   }
@@ -677,7 +681,9 @@ class GitFileSystemImpl extends GitFileSystem {
   }
 
   private GitPathRootShaCachedImpl getPathRoot(RevCommit commit) {
-    return new GitPathRootShaCachedImpl(this, GitRev.commitId(commit), commit);
+    final GitPathRootShaCachedImpl p =
+        new GitPathRootShaCachedImpl(this, GitRev.commitId(commit), commit);
+    return p;
   }
 
   @Override
@@ -732,7 +738,7 @@ class GitFileSystemImpl extends GitFileSystem {
 
   @Override
   public ImmutableGraph<GitPathRootShaCached> graph() throws IOException {
-    final ImmutableSet<RevCommit> commits = getCommits();
+    final ImmutableSet<RevCommit> commits = getCommits(true);
 
     final MutableGraph<RevCommit> cG = GraphUtils.asGraph(commits, p -> ImmutableList.of(),
         c -> ImmutableList.copyOf(c.getParents()));
@@ -791,7 +797,7 @@ class GitFileSystemImpl extends GitFileSystem {
 
   @Override
   public ImmutableSet<Path> getRootDirectories() throws UncheckedIOException {
-    final ImmutableSet<RevCommit> commits = IO_UNCHECKER.getUsing(this::getCommits);
+    final ImmutableSet<RevCommit> commits = IO_UNCHECKER.getUsing(() -> getCommits(true));
     return commits.stream().map(this::getPathRoot).collect(ImmutableSet.toImmutableSet());
   }
 

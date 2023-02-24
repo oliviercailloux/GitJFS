@@ -2,6 +2,7 @@ package io.github.oliviercailloux.gitjfs.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verify;
+import static com.google.common.base.Verify.verifyNotNull;
 
 import io.github.oliviercailloux.gitjfs.Commit;
 import io.github.oliviercailloux.gitjfs.GitPathRootShaCached;
@@ -19,6 +20,11 @@ public class GitPathRootShaCachedImpl extends GitPathRootShaImpl implements GitP
     super(fileSystem, gitRev, Optional.of(commit));
     checkArgument(gitRev.isCommitId());
     checkArgument(commit.getId().equals(gitRev.getCommitId()));
+    /*
+     * Just to verify that it is parsed indeed (fails if for example the revcommit is obtained from
+     * a revwalk that does not retain bodies).
+     */
+    verifyNotNull(commit.getRawBuffer());
   }
 
   @Deprecated
