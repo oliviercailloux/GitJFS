@@ -65,7 +65,18 @@ public interface GitPathRoot extends GitPath {
    */
   @Override
   @Deprecated
-  GitPath getParent();
+  GitPathRoot getParent();
+
+  /**
+   * Returns {@code null}.
+   *
+   * @return {@code null}
+   *
+   * @deprecated No reason to call this.
+   */
+  @Override
+  @Deprecated
+  public GitPathRoot getFileName();
 
   GitPathRootSha toSha() throws IOException, NoSuchFileException;
 

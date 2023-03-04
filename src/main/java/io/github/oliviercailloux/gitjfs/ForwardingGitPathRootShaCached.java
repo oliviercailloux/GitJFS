@@ -42,9 +42,9 @@ public abstract class ForwardingGitPathRootShaCached implements GitPathRootShaCa
     return delegate().getRoot();
   }
 
-  @Deprecated
   @Override
-  public GitPath getParent() {
+  @Deprecated
+  public GitPathRoot getParent() {
     return delegate().getParent();
   }
 
@@ -110,7 +110,8 @@ public abstract class ForwardingGitPathRootShaCached implements GitPathRootShaCa
   }
 
   @Override
-  public GitPath getFileName() {
+  @Deprecated
+  public GitPathRoot getFileName() {
     return delegate().getFileName();
   }
 

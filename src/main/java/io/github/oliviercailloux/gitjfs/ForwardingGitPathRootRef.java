@@ -42,9 +42,9 @@ public abstract class ForwardingGitPathRootRef implements GitPathRootRef {
     return delegate().getRoot();
   }
 
-  @Deprecated
   @Override
-  public GitPath getParent() {
+  @Deprecated
+  public GitPathRoot getParent() {
     return delegate().getParent();
   }
 
@@ -108,7 +108,8 @@ public abstract class ForwardingGitPathRootRef implements GitPathRootRef {
   }
 
   @Override
-  public GitPath getFileName() {
+  @Deprecated
+  public GitPathRoot getFileName() {
     return delegate().getFileName();
   }
 

@@ -81,10 +81,17 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
     return gitRev;
   }
 
-  @SuppressWarnings("deprecation")
   @Override
-  public GitPathImpl getParent() {
+  @Deprecated
+  public GitPathRootImpl getParent() {
     verify(getInternalPath().getParent() == null);
+    return null;
+  }
+
+  @Override
+  @Deprecated
+  public GitPathRootImpl getFileName() {
+    verify(super.getFileName() == null);
     return null;
   }
 

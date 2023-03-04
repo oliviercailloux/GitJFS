@@ -44,7 +44,7 @@ public abstract class ForwardingGitPathRoot implements GitPathRoot {
 
   @Deprecated
   @Override
-  public GitPath getParent() {
+  public GitPathRoot getParent() {
     return delegate().getParent();
   }
 
@@ -105,7 +105,8 @@ public abstract class ForwardingGitPathRoot implements GitPathRoot {
   }
 
   @Override
-  public GitPath getFileName() {
+  @Deprecated
+  public GitPathRoot getFileName() {
     return delegate().getFileName();
   }
 
