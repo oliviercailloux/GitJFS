@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.net.UrlEscapers;
+import io.github.oliviercailloux.factogit.JGit;
 import io.github.oliviercailloux.gitjfs.GitFileSystem;
-import io.github.oliviercailloux.jgit.JGit;
 import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.nio.file.InvalidPathException;

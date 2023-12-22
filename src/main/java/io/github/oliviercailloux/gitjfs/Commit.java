@@ -14,8 +14,9 @@ import org.eclipse.jgit.lib.ObjectId;
  * <p>
  * Note that authoring comes logically before committing but there is no guarantee that the author
  * date and committer date follow this ordering (and this class does not attempt to verify this):
- * because the dates are set by the client, manual tampering or incorrect clock may cause author
- * time to be after committer time. This is rare in practice, but happens. For example, <a href=
+ * because the dates are set by the client, manual tampering or incorrect clock may yield a
+ * committer time earlier than author time. This is rare in practice, but happens. For example,
+ * <a href=
  * "https://api.github.com/repos/checkstyle/checkstyle/commits/812b3416dcda571de5e6f7abd9d4e4c68c4dcdcf">this
  * commit</a> in the checkstyle project was authored at “2017-07-09T05:01:28Z” but committed (by
  * someone else) about twenty minutes earlier.
