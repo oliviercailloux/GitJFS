@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>io.github.oliviercailloux</groupId>
 		<artifactId>pom</artifactId>
-		<version>0.0.16</version>
+		<version>0.0.20</version>
 	</parent>
 	<artifactId>gitjfs</artifactId>
 	<version>0.0.4-SNAPSHOT</version>
@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>io.github.oliviercailloux</groupId>
 			<artifactId>jaris</artifactId>
-			<version>0.0.22</version>
+			<version>0.0.28</version>
 		</dependency>
 		<dependency>
 			<groupId>io.github.oliviercailloux.git</groupId>
