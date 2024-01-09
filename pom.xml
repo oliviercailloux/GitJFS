@@ -4,44 +4,23 @@
 	<parent>
 		<groupId>io.github.oliviercailloux</groupId>
 		<artifactId>pom</artifactId>
-		<version>0.0.20</version>
+		<version>0.0.21</version>
 	</parent>
 	<artifactId>gitjfs</artifactId>
 	<version>0.0.5-SNAPSHOT</version>
 	<name>GitJFS</name>
 	<description>A NIO Git file system.</description>
 	<url>https://github.com/oliviercailloux/GitJFS</url>
-	<profiles>
-		<profile>
-			<id>release</id>
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<configuration>
-							<failOnWarnings>false</failOnWarnings>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 	<dependencies>
 		<dependency>
 			<groupId>io.github.oliviercailloux</groupId>
 			<artifactId>jaris</artifactId>
-			<version>0.0.28</version>
-		</dependency>
-		<dependency>
-			<groupId>io.github.oliviercailloux.git</groupId>
-			<artifactId>common</artifactId>
-			<version>0.0.1</version>
-			<scope>test</scope>
+			<version>0.0.30</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.jimfs</groupId>
 			<artifactId>jimfs</artifactId>
-			<version>1.1</version>
+			<version>1.3.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
@@ -55,9 +34,15 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.github.oliviercailloux</groupId>
-			<artifactId>factogit</artifactId>
-			<version>0.0.1</version>
+			<groupId>io.github.oliviercailloux.git</groupId>
+			<artifactId>common</artifactId>
+			<version>0.0.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.github.oliviercailloux.git</groupId>
+			<artifactId>factory</artifactId>
+			<version>0.0.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
