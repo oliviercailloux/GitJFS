@@ -6,7 +6,8 @@
 		<artifactId>pom</artifactId>
 		<version>0.0.21</version>
 	</parent>
-	<artifactId>gitjfs</artifactId>
+  <groupId>io.github.oliviercailloux.git</groupId>
+	<artifactId>jfs</artifactId>
 	<version>0.0.5-SNAPSHOT</version>
 	<name>GitJFS</name>
 	<description>A NIO Git file system.</description>
