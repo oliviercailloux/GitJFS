@@ -8,7 +8,7 @@
 	</parent>
   <groupId>io.github.oliviercailloux.git</groupId>
 	<artifactId>jfs</artifactId>
-	<version>0.0.5-SNAPSHOT</version>
+	<version>0.0.5</version>
 	<name>GitJFS</name>
 	<description>A NIO Git file system.</description>
 	<url>https://github.com/oliviercailloux/GitJFS</url>
