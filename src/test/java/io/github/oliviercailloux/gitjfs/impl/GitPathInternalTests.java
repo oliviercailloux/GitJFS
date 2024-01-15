@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.net.UrlEscapers;
-import io.github.oliviercailloux.factogit.JGit;
+import io.github.oliviercailloux.git.factory.JGit;
 import io.github.oliviercailloux.gitjfs.GitFileSystem;
 import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;

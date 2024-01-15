@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.graph.GraphBuilder;
-import io.github.oliviercailloux.factogit.JGit;
+import io.github.oliviercailloux.git.factory.JGit;
 import io.github.oliviercailloux.gitjfs.GitFileSystem;
 import io.github.oliviercailloux.gitjfs.IGitDfsFileSystem;
 import io.github.oliviercailloux.gitjfs.IGitFileFileSystem;

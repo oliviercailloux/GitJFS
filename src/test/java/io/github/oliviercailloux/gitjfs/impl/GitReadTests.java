@@ -14,7 +14,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.PeekingIterator;
 import com.google.common.graph.MutableGraph;
-import io.github.oliviercailloux.factogit.JGit;
+import io.github.oliviercailloux.git.factory.JGit;
 import io.github.oliviercailloux.git.common.GitUri;
 import io.github.oliviercailloux.git.common.RepositoryCoordinates;
 import io.github.oliviercailloux.gitjfs.AbsoluteLinkException;
