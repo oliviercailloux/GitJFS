@@ -4,19 +4,18 @@
 	<parent>
 		<groupId>io.github.oliviercailloux</groupId>
 		<artifactId>pom</artifactId>
-		<version>0.0.21</version>
+		<version>0.0.22</version>
 	</parent>
-  <groupId>io.github.oliviercailloux.git</groupId>
-	<artifactId>jfs</artifactId>
-	<version>0.0.6-SNAPSHOT</version>
 	<name>GitJFS</name>
+	<artifactId>gitjfs</artifactId>
+	<version>0.0.6-SNAPSHOT</version>
 	<description>A NIO Git file system.</description>
 	<url>https://github.com/oliviercailloux/GitJFS</url>
 	<dependencies>
 		<dependency>
 			<groupId>io.github.oliviercailloux</groupId>
 			<artifactId>jaris</artifactId>
-			<version>0.0.30</version>
+			<version>0.0.34</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.jimfs</groupId>
@@ -35,15 +34,15 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.github.oliviercailloux.git</groupId>
-			<artifactId>common</artifactId>
-			<version>0.0.2</version>
+			<groupId>io.github.oliviercailloux</groupId>
+			<artifactId>git-common</artifactId>
+			<version>0.0.3-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>io.github.oliviercailloux.git</groupId>
-			<artifactId>factory</artifactId>
-			<version>0.0.2</version>
+			<groupId>io.github.oliviercailloux</groupId>
+			<artifactId>git-factory</artifactId>
+			<version>0.0.3-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

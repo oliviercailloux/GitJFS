@@ -27,7 +27,7 @@ import io.github.oliviercailloux.gitjfs.GitPathRootSha;
 import io.github.oliviercailloux.gitjfs.GitPathRootShaCached;
 import io.github.oliviercailloux.gitjfs.PathCouldNotBeFoundException;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.GitStringObject;
-import io.github.oliviercailloux.jaris.collections.GraphUtils;
+import io.github.oliviercailloux.jaris.graphs.GraphUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;

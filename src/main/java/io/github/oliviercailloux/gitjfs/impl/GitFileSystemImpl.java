@@ -22,7 +22,7 @@ import io.github.oliviercailloux.gitjfs.GitPathRoot;
 import io.github.oliviercailloux.gitjfs.GitPathRootRef;
 import io.github.oliviercailloux.gitjfs.GitPathRootShaCached;
 import io.github.oliviercailloux.gitjfs.PathCouldNotBeFoundException;
-import io.github.oliviercailloux.jaris.collections.GraphUtils;
+import io.github.oliviercailloux.jaris.graphs.GraphUtils;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
