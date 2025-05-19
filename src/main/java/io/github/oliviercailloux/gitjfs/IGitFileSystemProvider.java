@@ -271,7 +271,6 @@ public interface IGitFileSystemProvider {
       FileAttribute<?>... attrs) throws IOException;
 
   /**
-   * {@inheritDoc}
    * <p>
    * The elements returned by the directory stream's {@link DirectoryStream#iterator iterator} are
    * of type {@code
