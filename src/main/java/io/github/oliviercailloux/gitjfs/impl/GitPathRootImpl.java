@@ -6,6 +6,7 @@ import static com.google.common.base.Verify.verify;
 import com.google.common.collect.ImmutableList;
 import io.github.oliviercailloux.gitjfs.Commit;
 import io.github.oliviercailloux.gitjfs.GitPathRoot;
+import io.github.oliviercailloux.gitjfs.GitPathRootSha;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.FollowLinksBehavior;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.GitObject;
 import java.io.IOException;
@@ -168,12 +169,12 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
   }
 
   @Override
-  public ImmutableList<GitPathRootShaImpl> getParentCommits()
+  public ImmutableList<GitPathRootSha> getParentCommits()
       throws IOException, NoSuchFileException {
     final RevCommit revCommit = getRevCommit();
     final ImmutableList<RevCommit> parents = ImmutableList.copyOf(revCommit.getParents());
 
-    final ImmutableList.Builder<GitPathRootShaImpl> builder = ImmutableList.builder();
+    final ImmutableList.Builder<GitPathRootSha> builder = ImmutableList.builder();
     for (ObjectId parentId : parents) {
       builder.add(getFileSystem().getPathRoot(parentId));
     }
