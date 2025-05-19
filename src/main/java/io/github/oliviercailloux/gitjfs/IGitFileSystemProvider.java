@@ -104,7 +104,7 @@ public interface IGitFileSystemProvider {
    * <a href="https://www.eclipse.org/forums/index.php/m/1828091/">limitations</a> of JGit (please
    * vote <a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=526500">here</a> to voice your
    * concern: the bug will already be <a href=
-   * "https://bugs.eclipse.org/bugs/buglist.cgi?component=JGit&resolution=---&order=votes%20DESC">quite
+   * "https://bugs.eclipse.org/bugs/buglist.cgi?component=JGit&amp;resolution=---&amp;order=votes%20DESC">quite
    * visible</a> if we reach 5 votes).
    * </p>
    *
