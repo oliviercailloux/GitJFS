@@ -89,7 +89,7 @@ public abstract class ForwardingGitPathRootShaCached implements GitPathRootShaCa
   }
 
   @Override
-  public ImmutableList<? extends GitPathRootSha> getParentCommits()
+  public ImmutableList<GitPathRootSha> getParentCommits()
       throws IOException, NoSuchFileException {
     return delegate().getParentCommits();
   }

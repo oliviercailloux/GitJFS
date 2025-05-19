@@ -84,7 +84,7 @@ public abstract class ForwardingGitPathRoot implements GitPathRoot {
   }
 
   @Override
-  public ImmutableList<? extends GitPathRootSha> getParentCommits()
+  public ImmutableList<GitPathRootSha> getParentCommits()
       throws IOException, NoSuchFileException {
     return delegate().getParentCommits();
   }

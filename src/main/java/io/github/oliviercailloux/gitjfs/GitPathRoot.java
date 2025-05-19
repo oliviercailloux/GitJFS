@@ -128,6 +128,6 @@ public interface GitPathRoot extends GitPath {
    */
   Commit getCommit() throws IOException, NoSuchFileException;
 
-  ImmutableList<? extends GitPathRootSha> getParentCommits()
+  ImmutableList<GitPathRootSha> getParentCommits()
       throws IOException, NoSuchFileException;
 }
