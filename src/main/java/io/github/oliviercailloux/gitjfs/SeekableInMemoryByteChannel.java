@@ -22,7 +22,6 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.NonWritableChannelException;
 import java.nio.channels.SeekableByteChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * <p>
@@ -47,7 +46,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * @since 1.13
  */
-@NotThreadSafe
 public class SeekableInMemoryByteChannel implements SeekableByteChannel {
 
   private byte[] data;
