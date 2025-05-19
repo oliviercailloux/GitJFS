@@ -244,12 +244,13 @@ public interface IGitFileSystem extends AutoCloseable {
   ImmutableSet<GitPathRootRef> refs() throws IOException;
 
   /**
+   * TODO if one fs is a filtering one and the other is not but with the same underlying fs, this
+   * should probably work.
+   * 
    * @param first its file system should equal this file system.
    * @param second its file system should equal this file system.
    * @return a diff between both commits, and an empty set if they are the same commit.
    * @throws IOException if an I/O error occurs
-   * 
-   * TODO if one fs is a filtering one and the other is not but with the same underlying fs, this should probably work.
    */
   public ImmutableSet<DiffEntry> diff(GitPathRoot first, GitPathRoot second)
       throws IOException, NoSuchFileException;
