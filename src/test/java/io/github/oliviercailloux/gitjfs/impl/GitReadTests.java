@@ -421,6 +421,34 @@ public class GitReadTests {
         final GitPathRootSha p4 = gitFs.getPathRoot(commit4);
         assertEquals(ImmutableList.of(), p1.getParentCommits());
         assertEquals(ImmutableList.of(p1), p2.getParentCommits());
+        assertEquals(GitPathRootShaImpl.class,
+            Iterables.getOnlyElement(p2.getParentCommits()).getClass());
+        assertEquals(ImmutableList.of(p2), p3.getParentCommits());
+        assertEquals(ImmutableList.of(p3), p4.getParentCommits());
+      }
+    }
+  }
+
+  @Test
+  void testParentCommitsGraphFirst() throws Exception {
+    try (DfsRepository repo = new InMemoryRepository(new DfsRepositoryDescription("myrepo"))) {
+      final ImmutableList<ObjectId> commits = JGit.createRepoWithLink(repo);
+      assertEquals(4, commits.size());
+      final ObjectId commit1 = commits.get(0);
+      final ObjectId commit2 = commits.get(1);
+      final ObjectId commit3 = commits.get(2);
+      final ObjectId commit4 = commits.get(3);
+      try (GitFileSystem gitFs =
+          GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
+        gitFs.graph();
+        final GitPathRootSha p1 = gitFs.getPathRoot(commit1);
+        final GitPathRootSha p2 = gitFs.getPathRoot(commit2);
+        final GitPathRootSha p3 = gitFs.getPathRoot(commit3);
+        final GitPathRootSha p4 = gitFs.getPathRoot(commit4);
+        assertEquals(ImmutableList.of(), p1.getParentCommits());
+        assertEquals(ImmutableList.of(p1), p2.getParentCommits());
+        assertEquals(GitPathRootShaCachedImpl.class,
+            Iterables.getOnlyElement(p2.getParentCommits()).getClass());
         assertEquals(ImmutableList.of(p2), p3.getParentCommits());
         assertEquals(ImmutableList.of(p3), p4.getParentCommits());
       }
@@ -620,8 +648,7 @@ public class GitReadTests {
     final GitPathRoot pathId = gitFs.getPathRoot(id);
 
     LOGGER.info("Searching for file directly.");
-    try (ObjectReader reader = repository.newObjectReader();
-        RevWalk walker = new RevWalk(reader);
+    try (ObjectReader reader = repository.newObjectReader(); RevWalk walker = new RevWalk(reader);
         TreeWalk treeWalk = new TreeWalk(reader);) {
       final RevCommit commit = walker.parseCommit(id);
       final RevTree commitTree = commit.getTree();
@@ -636,8 +663,7 @@ public class GitReadTests {
     LOGGER.info("Searched everywhere.");
 
     LOGGER.info("Searching for file indirectly.");
-    try (ObjectReader reader = repository.newObjectReader();
-        RevWalk walker = new RevWalk(reader);
+    try (ObjectReader reader = repository.newObjectReader(); RevWalk walker = new RevWalk(reader);
         TreeWalk treeWalk = new TreeWalk(reader);) {
       final RevCommit commit = walker.parseCommit(id);
       final RevTree commitTree = commit.getTree();
@@ -675,9 +701,8 @@ public class GitReadTests {
     final GitUri uri = RepositoryCoordinates
         .from("git@github.com", "oliviercailloux-org", "minimax-ex").asGitUri();
     LOGGER.info("From {}.", uri.asString());
-    try (FileRepository repository = download(uri, repoWorkDir);
-        GitFileSystem gitFs =
-            GitFileSystemProviderImpl.getInstance().newFileSystemFromRepository(repository)) {
+    try (FileRepository repository = download(uri, repoWorkDir); GitFileSystem gitFs =
+        GitFileSystemProviderImpl.getInstance().newFileSystemFromRepository(repository)) {
       search(repository, gitFs);
       search(repository, gitFs);
       search(repository, gitFs);

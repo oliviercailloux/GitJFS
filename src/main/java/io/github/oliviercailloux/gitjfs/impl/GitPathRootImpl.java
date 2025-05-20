@@ -169,8 +169,17 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
   }
 
   @Override
-  public ImmutableList<GitPathRootSha> getParentCommits()
-      throws IOException, NoSuchFileException {
+  public ImmutableList<GitPathRootSha> getParentCommits() throws IOException, NoSuchFileException {
+    if (fileSystem.computedGraph()) {
+      return ImmutableList.copyOf(fileSystem.graph().predecessors(this.toShaCached()));
+    }
+
+    /*
+     * Design choice: we need to parse this commit to get its parents (so the caller should call
+     * toShaCached() then getParents if she’s interested in caching this one for free), but this does
+     * not imply that we can return a list of <ShaCached>: this would require also reading the
+     * parents of the parents…
+     */
     final RevCommit revCommit = getRevCommit();
     final ImmutableList<RevCommit> parents = ImmutableList.copyOf(revCommit.getParents());
 
