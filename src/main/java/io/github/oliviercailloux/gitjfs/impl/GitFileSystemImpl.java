@@ -362,6 +362,8 @@ class GitFileSystemImpl extends GitFileSystem {
       new GitPathRootRefImpl(this, GitPathRootImpl.DEFAULT_GIT_REF);
   final GitEmptyPath emptyPath = new GitEmptyPath(mainSlash);
 
+  private ImmutableGraph<GitPathRootShaCached> graph;
+
   /**
    * Git file system provides low-level access to read operations on a repository (such as
    * retrieving a RevCommit given an id; including with specific exceptions raised by JGit). The
@@ -377,6 +379,7 @@ class GitFileSystemImpl extends GitFileSystem {
     reader.setAvoidUnreachableObjects(true);
     isOpen = true;
     this.toClose = new LinkedHashSet<>();
+    graph = null;
   }
 
   private ImmutableSet<RevCommit> getCommits(boolean retainBodies) throws IOException {
@@ -738,12 +741,23 @@ class GitFileSystemImpl extends GitFileSystem {
 
   @Override
   public ImmutableGraph<GitPathRootShaCached> graph() throws IOException {
-    final ImmutableSet<RevCommit> commits = getCommits(true);
+    /*
+     * Design choice: this method returns ShaCached instances because (I believe that) need to parse
+     * a commit to get its parents; need to parse everything, thus.
+     */
+    if (graph == null) {
+      final ImmutableSet<RevCommit> commits = getCommits(true);
 
-    final MutableGraph<RevCommit> cG = GraphUtils.asGraph(commits, p -> ImmutableList.of(),
-        c -> ImmutableList.copyOf(c.getParents()));
-    final MutableGraph<GitPathRootShaCached> gr = GraphUtils.transform(cG, this::getPathRoot);
-    return ImmutableGraph.copyOf(gr);
+      final MutableGraph<RevCommit> cG = GraphUtils.asGraph(commits, p -> ImmutableList.of(),
+          c -> ImmutableList.copyOf(c.getParents()));
+      final MutableGraph<GitPathRootShaCached> gr = GraphUtils.transform(cG, this::getPathRoot);
+      graph = ImmutableGraph.copyOf(gr);
+    }
+    return graph;
+  }
+
+  boolean computedGraph() {
+    return graph != null;
   }
 
   @Override
