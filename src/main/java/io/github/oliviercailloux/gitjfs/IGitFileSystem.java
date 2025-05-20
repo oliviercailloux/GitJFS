@@ -222,6 +222,9 @@ public interface IGitFileSystem extends AutoCloseable {
    * <p>
    * The set of nodes in the graph equals the one returned by {@link #getRootDirectories()}.
    * <p>
+   * The predecessor order follows the one of git parents: nodes are given in order of the parent
+   * order. (TODO actually this will be guaranteed when switching to Jaris 39.)
+   * <p>
    * The version adopted here maximizes simplicity of use at the price of memory efficiency, as it
    * caches all commits (meaning not only the parent information, required for building the graph,
    * but also all information found in the {@link Commit} instances, such as author information).
