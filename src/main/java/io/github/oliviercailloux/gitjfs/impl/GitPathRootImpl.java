@@ -176,8 +176,8 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
 
     /*
      * Design choice. We need to parse this commit to get its parents (so the caller should call
-     * toShaCached() then getParents if she’s interested in caching this one for free), but this does
-     * not imply that we can return a list of <ShaCached>: this would require also reading the
+     * toShaCached() then getParents if she’s interested in caching this one for free), but this
+     * does not imply that we can return a list of <ShaCached>: this would require also reading the
      * parents of the parents…
      */
     final RevCommit revCommit = getRevCommit();
@@ -206,8 +206,7 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
   private static ZonedDateTime getCreationTime(PersonIdent ident) {
     final Instant creationInstant = ident.getWhenAsInstant();
     final ZoneId creationZone = ident.getZoneId();
-    final ZonedDateTime creationTime =
-        ZonedDateTime.ofInstant(creationInstant, creationZone);
+    final ZonedDateTime creationTime = ZonedDateTime.ofInstant(creationInstant, creationZone);
     return creationTime;
   }
 }
