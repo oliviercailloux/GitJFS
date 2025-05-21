@@ -12,10 +12,10 @@ import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.GitObject;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.Optional;
-import java.util.TimeZone;
 import org.eclipse.jgit.lib.FileMode;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -204,10 +204,10 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
   }
 
   private static ZonedDateTime getCreationTime(PersonIdent ident) {
-    final Date creationInstant = ident.getWhen();
-    final TimeZone creationZone = ident.getTimeZone();
+    final Instant creationInstant = ident.getWhenAsInstant();
+    final ZoneId creationZone = ident.getZoneId();
     final ZonedDateTime creationTime =
-        ZonedDateTime.ofInstant(creationInstant.toInstant(), creationZone.toZoneId());
+        ZonedDateTime.ofInstant(creationInstant, creationZone);
     return creationTime;
   }
 }
