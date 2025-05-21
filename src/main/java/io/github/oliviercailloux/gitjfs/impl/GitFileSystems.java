@@ -230,9 +230,9 @@ class GitFileSystems {
 
   private BiMap<?, ? extends GitFileSystem> cachedSystems(GitFileSystem gitFs) {
     final BiMap<?, ? extends GitFileSystem> cachedSystems;
-    if (gitFs instanceof GitFileFileSystemImpl gitFileFs) {
+    if (gitFs instanceof GitFileFileSystemImpl) {
       cachedSystems = cachedFileFileSystems;
-    } else if (gitFs instanceof GitDfsFileSystemImpl gitDfsFs) {
+    } else if (gitFs instanceof GitDfsFileSystemImpl) {
       cachedSystems = cachedDfsFileSystems;
     } else {
       throw new IllegalArgumentException("Unknown repository type.");
