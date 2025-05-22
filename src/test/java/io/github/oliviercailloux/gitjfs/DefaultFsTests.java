@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributeView;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -195,5 +196,17 @@ public class DefaultFsTests {
       assertThrows(IllegalArgumentException.class,
           () -> def.provider().getFileSystem(noDir.toUri()));
     }
+  }
+
+  @Test
+  void testMissing() throws Exception {
+    Path path = Path.of("does-not-exist.nonetxt");
+    assertThrows(NoSuchFileException.class,
+        () -> path.getFileSystem().provider().checkAccess(path));
+    assertThrows(NoSuchFileException.class,
+        () -> path.getFileSystem().provider().readAttributes(path, "size"));
+    BasicFileAttributeView v =
+        path.getFileSystem().provider().getFileAttributeView(path, BasicFileAttributeView.class);
+    assertThrows(NoSuchFileException.class, () -> v.readAttributes());
   }
 }
