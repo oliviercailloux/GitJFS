@@ -5,6 +5,7 @@ import static com.google.common.base.Verify.verify;
 
 import com.google.common.collect.ImmutableList;
 import io.github.oliviercailloux.gitjfs.Commit;
+import io.github.oliviercailloux.gitjfs.CommitSignature;
 import io.github.oliviercailloux.gitjfs.GitPathRoot;
 import io.github.oliviercailloux.gitjfs.GitPathRootSha;
 import io.github.oliviercailloux.gitjfs.impl.GitFileSystemImpl.FollowLinksBehavior;
@@ -163,9 +164,8 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
   Commit getCommit(RevCommit revCommit) {
     final PersonIdent authorIdent = revCommit.getAuthorIdent();
     final PersonIdent committerIdent = revCommit.getCommitterIdent();
-    return Commit.from(revCommit, authorIdent.getName(), authorIdent.getEmailAddress(),
-        getCreationTime(authorIdent), committerIdent.getName(), committerIdent.getEmailAddress(),
-        getCreationTime(committerIdent), ImmutableList.copyOf(revCommit.getParents()));
+    return Commit.from(revCommit, CommitSignature.from(authorIdent),
+        CommitSignature.from(committerIdent), ImmutableList.copyOf(revCommit.getParents()));
   }
 
   @Override
@@ -201,12 +201,5 @@ public abstract class GitPathRootImpl extends GitAbsolutePath implements GitPath
   @Override
   GitObject getGitObject(FollowLinksBehavior behavior) throws NoSuchFileException, IOException {
     return GitObject.given(GitFileSystemImpl.JIM_FS_SLASH, getRevTree(), FileMode.TREE);
-  }
-
-  private static ZonedDateTime getCreationTime(PersonIdent ident) {
-    final Instant creationInstant = ident.getWhenAsInstant();
-    final ZoneId creationZone = ident.getZoneId();
-    final ZonedDateTime creationTime = ZonedDateTime.ofInstant(creationInstant, creationZone);
-    return creationTime;
   }
 }
