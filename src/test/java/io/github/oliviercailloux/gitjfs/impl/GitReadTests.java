@@ -16,6 +16,7 @@ import com.google.common.collect.PeekingIterator;
 import com.google.common.graph.MutableGraph;
 import io.github.oliviercailloux.git.common.GitUri;
 import io.github.oliviercailloux.git.common.RepositoryCoordinates;
+import io.github.oliviercailloux.git.factory.FactoGit;
 import io.github.oliviercailloux.git.factory.JGit;
 import io.github.oliviercailloux.gitjfs.AbsoluteLinkException;
 import io.github.oliviercailloux.gitjfs.GitFileSystem;
@@ -119,6 +120,16 @@ public class GitReadTests {
         }
         assertThrows(IOException.class, () -> Files.readString(gitFs.getRelativePath()));
         assertThrows(IOException.class, () -> Files.readString(gitFs.getRelativePath("dir")));
+      }
+    }
+  }
+
+  @Test
+  void testCreateBasic() throws Exception {
+    try (DfsRepository repo = FactoGit.createBasicRepo()) {
+      try (GitFileSystem gitFs =
+      GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
+        assertEquals(1, gitFs.graph().nodes().size());
       }
     }
   }
