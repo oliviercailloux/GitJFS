@@ -128,7 +128,7 @@ public class GitReadTests {
   void testCreateBasic() throws Exception {
     try (DfsRepository repo = FactoGit.createBasicRepo()) {
       try (GitFileSystem gitFs =
-      GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
+          GitFileSystemProviderImpl.getInstance().newFileSystemFromDfsRepository(repo)) {
         assertEquals(1, gitFs.graph().nodes().size());
       }
     }

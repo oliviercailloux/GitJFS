@@ -18,14 +18,16 @@ import org.eclipse.jgit.lib.ObjectId;
  * someone else) about twenty minutes earlier.
  */
 public interface Commit {
-  public static Commit from(ObjectId id, CommitSignature author, CommitSignature committer, ImmutableList<ObjectId> parents) {
+  public static Commit from(ObjectId id, CommitSignature author, CommitSignature committer,
+      ImmutableList<ObjectId> parents) {
     return new CommitImpl(id, author, committer, parents);
   }
+
   public ObjectId id();
 
   public CommitSignature author();
 
-  public String authorName() ;
+  public String authorName();
 
   public String authorEmail();
 
@@ -49,11 +51,9 @@ public interface Commit {
    */
   /*
    * We could get happy with comparing only the ids, as a random collision is extremely unlikely.
-   * But non-random collisions appear to be not so unlikely
-   * (https://stackoverflow.com/q/10434326), so let’s compare everything just to be sure not to
-   * allow for exploits.
+   * But non-random collisions appear to be not so unlikely (https://stackoverflow.com/q/10434326),
+   * so let’s compare everything just to be sure not to allow for exploits.
    */
   @Override
   public boolean equals(Object o2);
-
 }

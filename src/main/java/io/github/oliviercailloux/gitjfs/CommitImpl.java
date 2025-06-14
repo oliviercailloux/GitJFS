@@ -4,7 +4,8 @@ import com.google.common.collect.ImmutableList;
 import java.time.ZonedDateTime;
 import org.eclipse.jgit.lib.ObjectId;
 
-public record CommitImpl(ObjectId id, CommitSignature author, CommitSignature committer, ImmutableList<ObjectId> parents) implements Commit {
+public record CommitImpl (ObjectId id, CommitSignature author, CommitSignature committer,
+    ImmutableList<ObjectId> parents) implements Commit {
 
   @Override
   public String authorName() {
@@ -35,5 +36,4 @@ public record CommitImpl(ObjectId id, CommitSignature author, CommitSignature co
   public ZonedDateTime committerDate() {
     return committer.date();
   }
-  
 }
