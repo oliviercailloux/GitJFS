@@ -8,7 +8,7 @@
   </parent>
   <name>GitJFS</name>
   <artifactId>gitjfs</artifactId>
-  <version>0.0.7</version>
+  <version>0.0.8-SNAPSHOT</version>
   <description>A NIO Git file system.</description>
   <url>https://github.com/oliviercailloux/GitJFS</url>
   <dependencies>
